@@ -1,0 +1,14 @@
+# Waypoint publisher specific parameters
+waypoint_publisher:
+  ros__parameters:
+    frame_id: "base_link"
+    world_name: "graf201"
+    waypoints_x:   [-5.84,  -3.81, -1.78, 1.33,   2.87]
+    waypoints_y:   [5.3,    -5.19, 5.22,  4.97,   -5.19]
+    waypoints_yaw: [-86.75, 81.28, 98.24, -88.68, 67.92]
+
+map_server:
+  ros__parameters:
+      frame_id: map
+      topic_name: map
+      use_sim_time: false

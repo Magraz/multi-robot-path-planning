@@ -1,0 +1,24 @@
+# Waypoint publisher specific parameters
+waypoint_publisher:
+  ros__parameters:
+    frame_id: "map"
+    world_name: "graf201"
+
+    waypoints_x:   [-5.84,  -3.81, -1.78, -0.11, 1.33,   2.87]
+    waypoints_y:   [5.3,    -5.19, 5.22,  -0.26, 4.97,   -5.19]
+    waypoints_yaw: [-86.75, 81.28, 98.24, 45.00, -88.68,  67.92]
+    
+    use_sim_time: True
+
+map_publisher:
+  ros__parameters:
+    ground_truth_topic: "/ground_truth"
+    use_sim_time: True
+
+vfh_follower:
+  ros__parameters:
+    linear_speed: 0.8
+    angular_speed_max: 1.0
+    robot_radius: 0.5
+    safety_radius: 0.8
+    use_sim_time: True
