@@ -70,7 +70,7 @@ my_block( pose [ 7.30 -7.31 0 180.000 ] color "green")
 my_block( pose [ -7.30 -7.41 0 180.000 ] color "green")
 
 # throw in a robot
-pioneer2dx_with_laser 
+turtlebot_with_laser 
 (
   # can refer to the robot by this name
   name "robot_0"

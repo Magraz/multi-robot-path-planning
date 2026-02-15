@@ -1,4 +1,5 @@
 include "include/pioneer2dx.inc"
+include "include/turtlebot.inc"
 
 define hokuyolaser ranger
 (
@@ -49,6 +50,31 @@ define qrcodereader fiducial
     size [ 0.1 0.1 0.1 ]
     color "green"
   )
+)
+
+define turtlebot3_burger_laser ranger
+(
+  sensor(
+    # TurtleBot3 Burger LDS characteristics (approx.)
+    pose [ 0 0 0 0 ]
+    size [ 0.07 0.07 0.04 ]
+    range [ 0.12 3.5 ]
+    fov 360.0
+    samples 360
+    color_rgba [ 0 0.6 1 0.15 ]
+  )
+  model
+  (
+    pose [ 0.0 0.0 0.0 0.0 ]
+    size [ 0.07 0.07 0.04 ]
+    color "DeepSkyBlue"
+  )
+)
+
+define turtlebot_with_laser turtlebot3_burger
+(
+  # LDS mounted on top plate
+  turtlebot3_burger_laser(pose [ 0 0 0.095 0 ])
 )
 
 define pioneer2dx_with_laser pioneer2dx_no_sonar 

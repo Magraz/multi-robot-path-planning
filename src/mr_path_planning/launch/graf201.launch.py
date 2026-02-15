@@ -13,15 +13,17 @@ from launch.actions import (
 from launch_ros.actions import Node
 import yaml
 
+NODENAME = "mr_path_planning"
+CONFIG = "graf201"
+
 
 def generate_launch_description():
 
     # Get directories
-    stage_ros2_dir = get_package_share_directory("stage_ros2")
-    stage_launch_dir = os.path.join(stage_ros2_dir, "launch")
+    pkg_dir = get_package_share_directory(NODENAME)
+    pkg_launch_dir = os.path.join(pkg_dir, "launch")
 
-    package_dir = get_package_share_directory("hw2")
-    config_file = os.path.join(package_dir, "config", "graf201.yaml")
+    config_file = os.path.join(pkg_dir, "config", f"{CONFIG}.yaml")
 
     # Load YAML config to extract world_name
     with open(config_file, "r") as f:
@@ -38,7 +40,7 @@ def generate_launch_description():
 
     # Waypoint publisher node with shared config
     waypoint_pub_node = Node(
-        package="hw2",
+        package=NODENAME,
         executable="waypoint_publisher",
         name="waypoint_publisher",
         parameters=[config_file],
@@ -46,7 +48,7 @@ def generate_launch_description():
     )
 
     vfh_follower_node = Node(
-        package="hw2",
+        package=NODENAME,
         executable="vfh_follower",
         name="vfh_follower",
         parameters=[config_file],
@@ -55,7 +57,7 @@ def generate_launch_description():
     )
 
     map_pub_node = Node(
-        package="hw2",
+        package=NODENAME,
         executable="map_publisher",
         name="map_publisher",
         parameters=[config_file],
@@ -64,7 +66,7 @@ def generate_launch_description():
 
     # Include stage_ros2 demo launch file
     stage_demo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(os.path.join(stage_launch_dir, "demo.launch.py")),
+        PythonLaunchDescriptionSource(os.path.join(pkg_launch_dir, "demo.launch.py")),
         launch_arguments={
             "world": world,
             "use_stamped_velocity": "true",

@@ -13,14 +13,17 @@ from launch.actions import (
 from launch_ros.actions import Node
 import yaml
 
+NODENAME = "mr_path_planning"
+CONFIG = "polkadot"
+
 
 def generate_launch_description():
 
     # Get directories
-    pkg_dir = get_package_share_directory("mr_path_planning")
+    pkg_dir = get_package_share_directory(NODENAME)
     pkg_launch_dir = os.path.join(pkg_dir, "launch")
 
-    config_file = os.path.join(pkg_dir, "config", "polkadot.yaml")
+    config_file = os.path.join(pkg_dir, "config", f"{CONFIG}.yaml")
 
     # Load YAML config to extract world_name
     with open(config_file, "r") as f:
@@ -37,24 +40,15 @@ def generate_launch_description():
 
     # Waypoint publisher node with shared config
     waypoint_pub_node = Node(
-        package="hw2",
+        package=NODENAME,
         executable="waypoint_publisher",
         name="waypoint_publisher",
         parameters=[config_file],
         output="screen",
     )
 
-    # Waypoint publisher node with shared config
-    # waypoint_follower_node = Node(
-    #     package="hw2",
-    #     executable="waypoint_follower",
-    #     name="waypoint_follower",
-    #     parameters=[config_file],
-    #     output="screen",
-    # )
-
     vfh_follower_node = Node(
-        package="hw2",
+        package=NODENAME,
         executable="vfh_follower",
         name="vfh_follower",
         parameters=[config_file],
@@ -63,7 +57,7 @@ def generate_launch_description():
     )
 
     map_pub_node = Node(
-        package="hw2",
+        package=NODENAME,
         executable="map_publisher",
         name="map_publisher",
         parameters=[config_file],
