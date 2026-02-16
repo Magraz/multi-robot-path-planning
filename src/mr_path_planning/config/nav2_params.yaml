@@ -11,7 +11,7 @@ amcl:
     odom_frame_id: "odom"
     scan_topic: /base_scan
     laser_model_type: "likelihood_field"
-    laser_max_range: 5.0
+    laser_max_range: 10.0
     laser_min_range: -1.0
     max_beams: 60
     max_particles: 2000

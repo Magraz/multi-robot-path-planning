@@ -9,6 +9,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 
 
 NODENAME = "mr_path_planning"
@@ -20,7 +21,7 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory(NODENAME)
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
-    slam_params = os.path.join(pkg_dir, "config", "slam_toolbox_polkadot.yaml")
+    slam_params = os.path.join(pkg_dir, "config", "slam_toolbox.yaml")
     nav2_params = os.path.join(pkg_dir, "config", "nav2_params.yaml")
 
     # Stage + RViz (reuse existing demo launch, no VFH nodes)
@@ -45,6 +46,22 @@ def generate_launch_description():
         }.items(),
     )
 
+    scan_adapter = Node(
+        package=NODENAME,
+        executable="scan_max_to_inf",
+        name="scan_max_to_inf",
+        output="screen",
+        parameters=[
+            {
+                "input_scan_topic": "/base_scan",
+                "output_scan_topic": "/base_scan_inf",
+                "epsilon": 0.005,
+                "no_return_intensity_threshold": 0.0,
+                "log_every_n_scans": 10,
+            }
+        ],
+    )
+
     # Nav2 navigation: planner, controller, bt_navigator, behaviors, etc.
     nav2_navigation = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -59,6 +76,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             stage_and_rviz,
+            scan_adapter,
             nav2_slam,
             nav2_navigation,
         ]

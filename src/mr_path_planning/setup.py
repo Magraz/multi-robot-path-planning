@@ -37,10 +37,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "waypoint_publisher = mr_path_planning.waypoint_publisher:main",
-            "waypoint_follower = mr_path_planning.waypoint_follower:main",
-            "map_publisher = mr_path_planning.map_publisher:main",
-            "vfh_follower = mr_path_planning.vfh_follower:main",
+            "scan_max_to_inf = mr_path_planning.scan_max_to_inf:main",
         ],
     },
 )

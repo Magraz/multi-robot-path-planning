@@ -31,7 +31,7 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory(NODENAME)
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
 
-    map_yaml = os.path.join(pkg_dir, "world", "bitmaps", "polkadot.yaml")
+    map_yaml = os.path.join(pkg_dir, "world", "bitmaps", f"{CONFIG}.yaml")
     nav2_params = os.path.join(pkg_dir, "config", "nav2_params.yaml")
 
     # Stage + RViz (reuse existing demo launch, no VFH nodes)
@@ -98,7 +98,10 @@ def generate_launch_description():
         actions=[
             ExecuteProcess(
                 cmd=[
-                    "ros2", "topic", "pub", "--once",
+                    "ros2",
+                    "topic",
+                    "pub",
+                    "--once",
                     "/initialpose",
                     "geometry_msgs/msg/PoseWithCovarianceStamped",
                     initial_pose_yaml,

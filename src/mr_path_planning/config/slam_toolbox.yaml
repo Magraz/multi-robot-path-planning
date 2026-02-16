@@ -7,12 +7,13 @@ slam_toolbox:
     odom_frame: odom
     map_frame: map
     base_frame: base_link
+    # Stage reports no-hit beams as range_max; this adapter rewrites them to inf.
     scan_topic: /base_scan
 
     # Keep map scale aligned with the simulated world map metadata.
     resolution: 0.02
     min_laser_range: 0.12
-    max_laser_range: 3.5
+    max_laser_range: 9.0
 
     # Increase update cadence to reduce warping during turns.
     map_update_interval: 1.0
