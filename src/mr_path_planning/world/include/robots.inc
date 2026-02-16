@@ -58,7 +58,7 @@ define turtlebot3_burger_laser ranger
     # TurtleBot3 Burger LDS characteristics (approx.)
     pose [ 0 0 0 0 ]
     size [ 0.07 0.07 0.04 ]
-    range [ 0.12 3.5 ]
+    range [ 0.12 10.0 ]
     fov 360.0
     samples 360
     color_rgba [ 0 0.6 1 0.15 ]

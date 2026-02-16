@@ -11,7 +11,8 @@ define turtlebot3_base position
   fiducial_return 1
 
   localization "odom"
-  odom_error [ 0.01 0.01 0.0 0.05 ]  # Lower error, as it's a small robot
+  # Reduced odometry noise for more stable SLAM in Stage.
+  odom_error [ 0.001 0.001 0.0 0.01 ]
 
   # four DOF kinematics limits
   # [ xmin xmax ymin ymax zmin zmax amin amax ]

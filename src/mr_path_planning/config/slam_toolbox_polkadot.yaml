@@ -1,0 +1,25 @@
+slam_toolbox:
+  ros__parameters:
+    use_sim_time: True
+    mode: mapping
+
+    # Frame and topic wiring for Stage + TurtleBot.
+    odom_frame: odom
+    map_frame: map
+    base_frame: base_link
+    scan_topic: /base_scan
+
+    # Keep map scale aligned with the simulated world map metadata.
+    resolution: 0.02
+    min_laser_range: 0.12
+    max_laser_range: 3.5
+
+    # Increase update cadence to reduce warping during turns.
+    map_update_interval: 1.0
+    minimum_time_interval: 0.1
+    minimum_travel_distance: 0.05
+    minimum_travel_heading: 0.05
+
+    transform_publish_period: 0.05
+    transform_timeout: 0.2
+    tf_buffer_duration: 30.0
