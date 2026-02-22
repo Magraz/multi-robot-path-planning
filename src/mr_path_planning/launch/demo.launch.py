@@ -33,7 +33,7 @@ def generate_launch_description():
     one_tf_tree = LaunchConfiguration("one_tf_tree")
     one_tf_tree_cmd = DeclareLaunchArgument(
         "one_tf_tree",
-        default_value="false",
+        default_value="true",
         description="on true all tfs are published with a namespace on /tf and /tf_static",
     )
 

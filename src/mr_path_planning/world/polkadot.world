@@ -4,6 +4,8 @@
 # Authors: Markus Bader
 
 include "include/robots.inc"
+include "include/target_robot.inc"
+
 
 # set the resolution of the underlying raytrace model in meters
 resolution 0.02
@@ -43,7 +45,7 @@ window
 floorplan
 ( 
   name "polkadot"
-  size [16.000 16.000 0.800]
+  size [10.000 10.000 0.800]
   pose [0 0 0 0]
   bitmap "bitmaps/polkadot.png"
   gui_move 0
@@ -75,5 +77,21 @@ turtlebot_with_laser
   # can refer to the robot by this name
   name "robot_0"
   color "red" 
-  pose [ -6.59 -4.27 0 45 ] 
+  pose [ -4.00 -4.00 0 45 ] 
+)
+
+turtlebot_with_laser 
+(
+  # can refer to the robot by this name
+  name "robot_1"
+  color "red" 
+  pose [ 4.00 -4.00 0 45 ] 
+)
+
+target_robot 
+(
+  # can refer to the robot by this name
+  name "target_0"
+  color "blue" 
+  pose [ 0.00 0.00 0 45 ] 
 )

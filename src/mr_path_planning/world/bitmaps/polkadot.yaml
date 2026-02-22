@@ -1,6 +1,6 @@
 image: polkadot.pgm
-resolution: 0.02
-origin: [-8.0, -8.0, 0.0]
+resolution: 0.0125
+origin: [-5.0, -5.0, 0.0]
 negate: 0
 occupied_thresh: 0.65
 free_thresh: 0.196

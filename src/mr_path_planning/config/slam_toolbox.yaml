@@ -11,7 +11,7 @@ slam_toolbox:
     scan_topic: /base_scan
 
     # Keep map scale aligned with the simulated world map metadata.
-    resolution: 0.02
+    resolution: 0.0125
     min_laser_range: 0.12
     max_laser_range: 9.0
 
