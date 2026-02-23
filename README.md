@@ -12,8 +12,10 @@ source install/setup.bash
 
 ### Run Nav2 on polkadot world
 
-To run the robot navigation in the polkadot environment. This instantiates one robot, and allows waypoint navigation by setting a Goal Pose in RVIZ.
+To run the robot navigation in the polkadot environment. This instantiates 2 robots, and a moving robot target.
 
 ```bash
-ros2 launch hw2 nav2_polkadot.launch.py
+ros2 launch hw2 nav2_multi.launch.py world:=graf201
 ```
+
+To start the target chase call the ``/chase_target/enable`` service
