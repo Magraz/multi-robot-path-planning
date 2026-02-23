@@ -38,6 +38,9 @@ setup(
     entry_points={
         "console_scripts": [
             "scan_max_to_inf = mr_path_planning.scan_max_to_inf:main",
+            "goal_relay = mr_path_planning.goal_relay:main",
+            "target_waypoint_patrol = mr_path_planning.target_waypoint_patrol:main",
+            "chase_target = mr_path_planning.chase_target:main",
         ],
     },
 )

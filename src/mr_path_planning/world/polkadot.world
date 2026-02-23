@@ -4,7 +4,6 @@
 # Authors: Markus Bader
 
 include "include/robots.inc"
-include "include/target_robot.inc"
 
 
 # set the resolution of the underlying raytrace model in meters
@@ -84,11 +83,11 @@ turtlebot_with_laser
 (
   # can refer to the robot by this name
   name "robot_1"
-  color "red" 
+  color "purple" 
   pose [ 4.00 -4.00 0 45 ] 
 )
 
-target_robot 
+turtlebot_with_laser 
 (
   # can refer to the robot by this name
   name "target_0"

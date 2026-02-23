@@ -45,24 +45,46 @@ def generate_launch_description():
         }.items(),
     )
 
-    # Nav2 localization: map_server + AMCL
-    nav2_localization = IncludeLaunchDescription(
+    # # Nav2 localization: map_server + AMCL
+    # nav2_localization = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(nav2_bringup_dir, "launch", "localization_launch.py")
+    #     ),
+    #     launch_arguments={
+    #         "map": map_yaml,
+    #         "params_file": nav2_params,
+    #         "use_sim_time": "true",
+    #     }.items(),
+    # )
+
+    # # Nav2 navigation: planner, controller, bt_navigator, behaviors, etc.
+    # nav2_navigation = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(nav2_bringup_dir, "launch", "navigation_launch.py")
+    #     ),
+    #     launch_arguments={
+    #         "params_file": nav2_params,
+    #         "use_sim_time": "true",
+    #     }.items(),
+    # )
+
+    # nav2_bringup_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(nav2_bringup_dir, "launch", "bringup_launch.py")
+    #     ),
+    #     launch_arguments={
+    #         "map": map_yaml,
+    #         "params_file": nav2_params,
+    #         "use_sim_time": "true",
+    #     }.items(),
+    # )
+
+    nav2_min_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_dir, "launch", "localization_launch.py")
+            os.path.join(pkg_dir, "launch", "nav2_minimal.launch.py")
         ),
         launch_arguments={
             "map": map_yaml,
-            "params_file": nav2_params,
-            "use_sim_time": "true",
-        }.items(),
-    )
-
-    # Nav2 navigation: planner, controller, bt_navigator, behaviors, etc.
-    nav2_navigation = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(nav2_bringup_dir, "launch", "navigation_launch.py")
-        ),
-        launch_arguments={
             "params_file": nav2_params,
             "use_sim_time": "true",
         }.items(),
@@ -78,7 +100,7 @@ def generate_launch_description():
         "{"
         "header: {frame_id: map}, "
         "pose: {pose: {"
-        f"position: {{x: -6.59, y: -4.27, z: 0.0}}, "
+        f"position: {{x: -4.00, y: -4.00, z: 0.0}}, "
         f"orientation: {{x: 0.0, y: 0.0, z: {qz:.5f}, w: {qw:.5f}}}"
         "}, covariance: ["
         "0.25, 0.0, 0.0, 0.0, 0.0, 0.0, "
@@ -114,8 +136,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             stage_and_rviz,
-            nav2_localization,
-            nav2_navigation,
+            nav2_min_launch,
             initial_pose_pub,
         ]
     )

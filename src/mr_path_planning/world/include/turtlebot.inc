@@ -20,7 +20,7 @@ define turtlebot3_base position
   acceleration_bounds [-0.5 0.5 0 0 0 0 -162.6 162.6]
 
   # actual size
-  size [0.178 0.138 0.192]  # length, width, height
+  size [0.356 0.276 0.384]  # length, width, height
 
   # center of rotation at geometric center
   origin [0 0 0 0]
@@ -34,10 +34,10 @@ define turtlebot3_burger turtlebot3_base
   # simplified Body shape:
   block(
     points 4
-    point[0] [-0.089 0.069]
-    point[1] [-0.089 -0.069]
-    point[2] [0.089 -0.069]
-    point[3] [0.089 0.069]
-    z [0 0.192]
+    point[0] [-0.178 0.138]
+    point[1] [-0.178 -0.138]
+    point[2] [0.178 -0.138]
+    point[3] [0.178 0.138]
+    z [0 0.384]
   )
 )

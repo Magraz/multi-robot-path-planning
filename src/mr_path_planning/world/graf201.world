@@ -43,7 +43,7 @@ window
 floorplan
 ( 
   name "graf201"
-  size [16.000 16.000 0.800]
+  size [32.000 18.000 0.800]
   pose [0 0 0 0]
   bitmap "bitmaps/graf201.png"
   gui_move 0
@@ -64,7 +64,6 @@ define mount model
 )
 
 # throw in a block in corners
-my_block( pose [ -7.42 7.39 0 180.000 ] color "green")
 my_block( pose [ 7.39 7.29 0 180.000 ] color "green")
 my_block( pose [ 7.30 -7.31 0 180.000 ] color "green")
 my_block( pose [ -7.30 -7.41 0 180.000 ] color "green")
@@ -72,10 +71,26 @@ my_block( pose [ -7.30 -7.41 0 180.000 ] color "green")
 
 
 # throw in a robot
-pioneer2dx_with_laser 
+turtlebot_with_laser
 (
   # can refer to the robot by this name
   name "robot_0"
-  color "red" 
-  pose [ -6.76 -5.04 0 45 ] 
+  color "red"
+  pose [ -6.00 -4.00 0 45 ]
+)
+
+turtlebot_with_laser
+(
+  # can refer to the robot by this name
+  name "robot_1"
+  color "purple"
+  pose [ 6.00 -4.00 0 45 ]
+)
+
+turtlebot_with_laser
+(
+  # can refer to the robot by this name
+  name "target_0"
+  color "blue"
+  pose [ 0.00 0.00 0 45 ]
 )

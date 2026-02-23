@@ -13,10 +13,6 @@ def generate_launch_description():
     params_file = LaunchConfiguration("params_file")
     map_yaml = LaunchConfiguration("map")
 
-    # If you later add namespaces, this remap pattern is what Nav2 uses
-    # so TF can live under the namespace (e.g., /robot_0/tf). :contentReference[oaicite:7]{index=7}
-    remappings = [("/tf", "tf"), ("/tf_static", "tf_static")]
-
     # --- localization lifecycle nodes (match actual node names) ---
     localization_nodes = ["map_server", "amcl"]
 
@@ -26,6 +22,8 @@ def generate_launch_description():
         "planner_server",
         "behavior_server",
         "bt_navigator",
+        "waypoint_follower",
+        "collision_monitor",
     ]
 
     return LaunchDescription(
@@ -47,7 +45,6 @@ def generate_launch_description():
                         name="map_server",
                         output="screen",
                         parameters=[params_file, {"yaml_filename": map_yaml}],
-                        remappings=remappings,
                     ),
                     Node(
                         package="nav2_amcl",
@@ -55,7 +52,6 @@ def generate_launch_description():
                         name="amcl",
                         output="screen",
                         parameters=[params_file],
-                        remappings=remappings,
                     ),
                     Node(
                         package="nav2_lifecycle_manager",
@@ -73,7 +69,6 @@ def generate_launch_description():
                         name="planner_server",
                         output="screen",
                         parameters=[params_file],
-                        remappings=remappings,
                     ),
                     Node(
                         package="nav2_controller",
@@ -81,8 +76,7 @@ def generate_launch_description():
                         name="controller_server",
                         output="screen",
                         parameters=[params_file],
-                        # NOTE: no ('cmd_vel' -> 'cmd_vel_nav') remap since we are NOT launching velocity_smoother
-                        remappings=remappings,
+                        remappings=[("cmd_vel", "cmd_vel_nav")],
                     ),
                     Node(
                         package="nav2_behaviors",
@@ -90,7 +84,6 @@ def generate_launch_description():
                         name="behavior_server",
                         output="screen",
                         parameters=[params_file],
-                        remappings=remappings,
                     ),
                     Node(
                         package="nav2_bt_navigator",
@@ -98,7 +91,20 @@ def generate_launch_description():
                         name="bt_navigator",
                         output="screen",
                         parameters=[params_file],
-                        remappings=remappings,
+                    ),
+                    Node(
+                        package="nav2_waypoint_follower",
+                        executable="waypoint_follower",
+                        name="waypoint_follower",
+                        output="screen",
+                        parameters=[params_file],
+                    ),
+                    Node(
+                        package="nav2_collision_monitor",
+                        executable="collision_monitor",
+                        name="collision_monitor",
+                        output="screen",
+                        parameters=[params_file],
                     ),
                     Node(
                         package="nav2_lifecycle_manager",

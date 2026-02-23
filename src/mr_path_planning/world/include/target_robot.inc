@@ -15,16 +15,16 @@ define target_robot position
   velocity_bounds [-0.22 0.22 0 0 0 0 -162.6 162.6]
   acceleration_bounds [-0.5 0.5 0 0 0 0 -162.6 162.6]
 
-  size [0.178 0.138 0.192]
+  size [0.356 0.276 0.384]
   origin [0 0 0 0]
   mass 1.0
 
   block(
     points 4
-    point[0] [-0.089  0.069]
-    point[1] [-0.089 -0.069]
-    point[2] [ 0.089 -0.069]
-    point[3] [ 0.089  0.069]
-    z [0 0.192]
+    point[0] [-0.178  0.138]
+    point[1] [-0.178 -0.138]
+    point[2] [ 0.178 -0.138]
+    point[3] [ 0.178  0.138]
+    z [0 0.384]
   )
 )

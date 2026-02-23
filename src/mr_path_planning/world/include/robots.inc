@@ -74,7 +74,7 @@ define turtlebot3_burger_laser ranger
 define turtlebot_with_laser turtlebot3_burger
 (
   # LDS mounted on top plate
-  turtlebot3_burger_laser(pose [ 0 0 0.095 0 ])
+  turtlebot3_burger_laser(pose [ 0 0 -0.2 0 ])
 )
 
 define pioneer2dx_with_laser pioneer2dx_no_sonar 
