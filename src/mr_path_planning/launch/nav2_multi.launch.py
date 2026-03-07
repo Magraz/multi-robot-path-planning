@@ -92,6 +92,31 @@ WORLD_CONFIGS = {
             0.0,
         ],
     },
+    "hospital": {
+        "robots": [
+            {"name": "robot_0", "x": -34.00, "y": -11.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": 34.00, "y": -17.00, "yaw_deg": 45.0},
+            # {"name": "target_0", "x": 35.50, "y": 3.50, "yaw_deg": 45.0},
+            # {"name": "target_0", "x": 24, "y": 14, "yaw_deg": 45.0},
+            # {"name": "target_0", "x": -2.5, "y": -2.0, "yaw_deg": 45.0},
+            # {"name": "target_0", "x": -17.0, "y": 3.0, "yaw_deg": 45.0},
+            {"name": "target_0", "x": -32.0, "y": 14.5, "yaw_deg": 45.0},
+        ],
+        "patrol_waypoints": [
+            14.0,
+            7.0,
+            0.0,
+            14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            7.0,
+            0.0,
+        ],
+    },
 }
 
 
@@ -178,7 +203,9 @@ def launch_setup(context):
         ],
     )
 
-    actions = [stage_and_rviz, goal_relay, target_patrol, chase_target]
+    # actions = [stage_and_rviz, goal_relay, target_patrol, chase_target]
+
+    actions = [stage_and_rviz, goal_relay, chase_target]
 
     multi_params = os.path.join(pkg_dir, "config", "nav2_params_multi.yaml")
 
