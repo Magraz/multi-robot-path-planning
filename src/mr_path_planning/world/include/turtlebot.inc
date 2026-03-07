@@ -16,11 +16,11 @@ define turtlebot3_base position
 
   # four DOF kinematics limits
   # [ xmin xmax ymin ymax zmin zmax amin amax ]
-  velocity_bounds [-0.22 0.22 0 0 0 0 -162.6 162.6]  # -/+0.22 m/s, -/+2.84 rad/s (deg)
+  velocity_bounds [-0.44 0.44 0 0 0 0 -162.6 162.6]  # -/+0.22 m/s, -/+2.84 rad/s (deg)
   acceleration_bounds [-0.5 0.5 0 0 0 0 -162.6 162.6]
 
   # actual size
-  size [0.356 0.276 0.384]  # length, width, height
+  size [0.138 0.178 0.384]  # length, width, height
 
   # center of rotation at geometric center
   origin [0 0 0 0]
@@ -34,10 +34,10 @@ define turtlebot3_burger turtlebot3_base
   # simplified Body shape:
   block(
     points 4
-    point[0] [-0.178 0.138]
-    point[1] [-0.178 -0.138]
-    point[2] [0.178 -0.138]
-    point[3] [0.178 0.138]
+    point[0] [-0.69 0.89]
+    point[1] [-0.69 -0.89]
+    point[2] [0.69 -0.89]
+    point[3] [0.69 0.89]
     z [0 0.384]
   )
 )
