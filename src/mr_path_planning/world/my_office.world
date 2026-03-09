@@ -40,14 +40,14 @@ turtlebot_with_laser
 (
   name "robot_0"
   color "blue"
-  pose [ -19.00 -0.00 0 45 ]
+  pose [ -19.00 2.00 0 45 ]
 )
 
 turtlebot_with_laser
 (
   name "robot_1"
   color "blue"
-  pose [ -5.70 1.00 0 45 ]
+  pose [ -5.70 2.00 0 45 ]
 )
 
 turtlebot_with_laser
