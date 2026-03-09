@@ -10,3 +10,21 @@ ros2 run mr_path_planning map_generator \
   --seed 123 \
   --name my_office \
   --output-dir src/mr_path_planning/world/bitmaps
+
+
+  # Draw a new graph from scratch
+python scripts/draw_graph_on_map.py \
+  --map-image src/mr_path_planning/world/bitmaps/my_office.png \
+  --output my_office_manual.gml
+
+# Continue editing an existing GML
+python scripts/draw_graph_on_map.py \
+  --map-image src/mr_path_planning/world/bitmaps/my_office.png \
+  --load src/mr_path_planning/world/bitmaps/my_office.gml \
+  --output my_office_manual.gml
+
+# With world coordinate conversion (if you have a map YAML)
+python scripts/draw_graph_on_map.py \
+  --map-image src/mr_path_planning/world/bitmaps/my_office.png \
+  --map-yaml src/mr_path_planning/world/bitmaps/my_office.yaml \
+  --output my_office_manual.gml

@@ -16,7 +16,7 @@ define turtlebot3_base position
 
   # four DOF kinematics limits
   # [ xmin xmax ymin ymax zmin zmax amin amax ]
-  velocity_bounds [-0.44 0.44 0 0 0 0 -162.6 162.6]  # -/+0.22 m/s, -/+2.84 rad/s (deg)
+  velocity_bounds [-0.88 0.88 0 0 0 0 -162.6 162.6]  # -/+0.22 m/s, -/+2.84 rad/s (deg)
   acceleration_bounds [-0.5 0.5 0 0 0 0 -162.6 162.6]
 
   # actual size
