@@ -140,9 +140,30 @@ WORLD_CONFIGS = {
     },
     "my_office": {
         "robots": [
-            {"name": "robot_0", "x": -19.00, "y": 0.00, "yaw_deg": 45.0},
-            {"name": "robot_1", "x": -5.70, "y": 1.00, "yaw_deg": 45.0},
+            {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 7.60, "y": 0.00, "yaw_deg": 45.0},
+        ],
+        "patrol_waypoints": [
+            14.0,
+            7.0,
+            0.0,
+            14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            7.0,
+            0.0,
+        ],
+    },
+    "big_office": {
+        "robots": [
+            {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
         ],
         "patrol_waypoints": [
             14.0,

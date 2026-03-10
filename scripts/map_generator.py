@@ -77,8 +77,10 @@ def generate_corridor_layout(grid, rng):
     corridors.append(("v", cx, corridor_width))
 
     # Clear corridor intersection
-    grid[cy:cy + corridor_width + WALL_THICKNESS,
-         cx:cx + corridor_width + WALL_THICKNESS] = FREE
+    grid[
+        cy : cy + corridor_width + WALL_THICKNESS,
+        cx : cx + corridor_width + WALL_THICKNESS,
+    ] = FREE
 
     return corridors
 
@@ -159,21 +161,31 @@ def add_corridor_doors(grid, corridors, regions, rng):
         if orient == "h":
             for wall_y in [pos, pos + cw]:
                 # Find regions that border this wall
-                for (rx, ry, rw, rh) in regions:
+                for rx, ry, rw, rh in regions:
                     if ry == wall_y + WALL_THICKNESS or ry + rh == wall_y:
                         # Punch a centered door for this region
                         door_x = rx + (rw - door_width) // 2
                         if door_x > rx + 4 and door_x + door_width < rx + rw - 4:
-                            add_door(grid, door_x, wall_y, horizontal=True,
-                                     door_width=door_width)
+                            add_door(
+                                grid,
+                                door_x,
+                                wall_y,
+                                horizontal=True,
+                                door_width=door_width,
+                            )
         else:
             for wall_x in [pos, pos + cw]:
-                for (rx, ry, rw, rh) in regions:
+                for rx, ry, rw, rh in regions:
                     if rx == wall_x + WALL_THICKNESS or rx + rw == wall_x:
                         door_y = ry + (rh - door_width) // 2
                         if door_y > ry + 4 and door_y + door_width < ry + rh - 4:
-                            add_door(grid, wall_x, door_y, horizontal=False,
-                                     door_width=door_width)
+                            add_door(
+                                grid,
+                                wall_x,
+                                door_y,
+                                horizontal=False,
+                                door_width=door_width,
+                            )
 
 
 def generate_office_map(width_px=800, height_px=600, resolution=0.05, seed=None):
