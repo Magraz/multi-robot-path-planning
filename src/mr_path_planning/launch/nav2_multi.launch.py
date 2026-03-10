@@ -96,6 +96,13 @@ WORLD_CONFIGS = {
             {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
         ],
     },
+    "more_office": {
+        "robots": [
+            {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
+        ],
+    },
 }
 
 
@@ -130,19 +137,29 @@ def launch_setup(context):
     map_yaml = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.yaml")
 
     # ------------------------------------------------------------------
-    # Stage + RViz
+    # Stage simulator
     #   enforce_prefixes=true   → topics prefixed: /robot_N/base_scan etc.
     #   one_tf_tree=true        → shared TF tree on /tf with prefixed frames
     # ------------------------------------------------------------------
-    stage_and_rviz = IncludeLaunchDescription(
+    stage = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_dir, "launch", "demo.launch.py")
+            os.path.join(pkg_dir, "launch", "stage.launch.py")
         ),
         launch_arguments={
             "world": world,
             "enforce_prefixes": "true",
             "one_tf_tree": "true",
             "use_stamped_velocity": "true",
+        }.items(),
+    )
+
+    # RViz with a single shared config for all worlds
+    rviz = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_dir, "launch", "rviz.launch.py")
+        ),
+        launch_arguments={
+            "config": "nav2_multi",
         }.items(),
     )
 
@@ -185,7 +202,7 @@ def launch_setup(context):
         ],
     )
 
-    actions = [stage_and_rviz, goal_relay, chase_target, graph_visualizer]
+    actions = [stage, rviz, goal_relay, chase_target, graph_visualizer]
 
     multi_params = os.path.join(pkg_dir, "config", "nav2_params_multi.yaml")
 
