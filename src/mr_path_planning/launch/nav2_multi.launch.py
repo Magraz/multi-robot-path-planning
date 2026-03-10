@@ -155,19 +155,6 @@ def launch_setup(context):
         parameters=[{"use_sim_time": True}],
     )
 
-    target_patrol = Node(
-        package=NODENAME,
-        executable="target_waypoint_patrol",
-        name="target_waypoint_patrol",
-        output="screen",
-        parameters=[
-            {"use_sim_time": True},
-            {"robot_name": "target_0"},
-            {"loop_patrol": True},
-            {"waypoints": patrol_waypoints},
-        ],
-    )
-
     # Periodically send target_0's position as a goal to robot_0 and robot_1
     chase_target = Node(
         package=NODENAME,
