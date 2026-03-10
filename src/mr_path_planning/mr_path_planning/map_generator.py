@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 Procedural office map generator for multi-robot search scenarios.
 Generates PNG, PGM, and YAML files compatible with nav2 map_server.
 ros2 run mr_path_planning map_generator \                          

@@ -41,6 +41,7 @@ from launch.actions import (
     OpaqueFunction,
     TimerAction,
 )
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
@@ -73,9 +74,9 @@ WORLD_CONFIGS = {
     },
     "graf201": {
         "robots": [
-            {"name": "robot_0", "x": -6.00, "y": -4.00, "yaw_deg": 45.0},
-            {"name": "robot_1", "x": 6.00, "y": -4.00, "yaw_deg": 45.0},
-            {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
+            {"name": "robot_0", "x": -8.00, "y": -6.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": 8.00, "y": -6.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 0.00, "y": 8.00, "yaw_deg": 45.0},
         ],
         "patrol_waypoints": [
             14.0,
@@ -140,9 +141,51 @@ WORLD_CONFIGS = {
     },
     "my_office": {
         "robots": [
-            {"name": "robot_0", "x": -19.00, "y": 0.00, "yaw_deg": 45.0},
-            {"name": "robot_1", "x": -5.70, "y": 1.00, "yaw_deg": 45.0},
-            {"name": "target_0", "x": 7.60, "y": 0.00, "yaw_deg": 45.0},
+            {"name": "robot_0", "x": -20.00, "y": -5.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -4.00, "y": -5.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": -10.00, "y": 8.00, "yaw_deg": 45.0},
+        ],
+        "patrol_waypoints": [
+            14.0,
+            7.0,
+            0.0,
+            14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            7.0,
+            0.0,
+        ],
+    },
+    "big_office": {
+        "robots": [
+            {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
+        ],
+        "patrol_waypoints": [
+            14.0,
+            7.0,
+            0.0,
+            14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            -7.0,
+            0.0,
+            -14.0,
+            7.0,
+            0.0,
+        ],
+    },
+    "more_office": {
+        "robots": [
+            {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
         ],
         "patrol_waypoints": [
             14.0,
@@ -186,12 +229,18 @@ def make_initial_pose_yaml(ns: str, x: float, y: float, yaw_deg: float) -> str:
 
 def launch_setup(context):
     world = LaunchConfiguration("world").perform(context)
+    enable_graph_viz = LaunchConfiguration("enable_graph_viz")
+    enable_graph_markers = LaunchConfiguration("enable_graph_markers")
+    graph_viz_rotation_deg = LaunchConfiguration("graph_viz_rotation_deg")
     config = WORLD_CONFIGS[world]
     robots = config["robots"]
     patrol_waypoints = config["patrol_waypoints"]
 
     pkg_dir = get_package_share_directory(NODENAME)
     map_yaml = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.yaml")
+    graph_sparse = os.path.join(pkg_dir, "world", "bitmaps", f"{world}_sparse.gml")
+    graph_dense = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.gml")
+    graph_path = graph_sparse if os.path.exists(graph_sparse) else graph_dense
 
     # ------------------------------------------------------------------
     # Stage + RViz
@@ -219,35 +268,110 @@ def launch_setup(context):
         parameters=[{"use_sim_time": True}],
     )
 
-    target_patrol = Node(
+    target_graph_uniform = Node(
         package=NODENAME,
-        executable="target_waypoint_patrol",
-        name="target_waypoint_patrol",
-        output="screen",
-        parameters=[
-            {"use_sim_time": True},
-            {"robot_name": "target_0"},
-            {"loop_patrol": True},
-            {"waypoints": patrol_waypoints},
-        ],
-    )
-
-    # Periodically send target_0's position as a goal to robot_0 and robot_1
-    chase_target = Node(
-        package=NODENAME,
-        executable="chase_target",
-        name="chase_target",
+        executable="target_graph_uniform",
+        name="target_graph_uniform",
         output="screen",
         parameters=[
             {"use_sim_time": True},
             {"target_name": "target_0"},
-            {"period": 5.0},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"period": 4.0},
+            {"move_every_n_cycles": 2},
+            {"seed": 0},
         ],
     )
 
-    # actions = [stage_and_rviz, goal_relay, target_patrol, chase_target]
+    # High-level graph routing with MILP; Nav2 executes waypoint motion.
+    milp_graph_search = Node(
+        package=NODENAME,
+        executable="milp_graph_search",
+        name="milp_graph_search",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"enabled": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"horizon": 10},
+            {"replan_period": 4.0},
+            {"capture_distance": 0.6},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+        ],
+    )
 
-    actions = [stage_and_rviz, goal_relay, chase_target]
+    graph_viz = Node(
+        package=NODENAME,
+        executable="realtime_graph_visualizer",
+        name="realtime_graph_visualizer",
+        output="screen",
+        condition=IfCondition(enable_graph_viz),
+        parameters=[
+            {"use_sim_time": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"period": 0.5},
+            {"rotate_graph_deg": graph_viz_rotation_deg},
+            {"pixel_order": "rc"},
+        ],
+    )
+
+    graph_markers = Node(
+        package=NODENAME,
+        executable="graph_visualizer",
+        name="graph_visualizer",
+        output="screen",
+        condition=IfCondition(enable_graph_markers),
+        parameters=[
+            {"use_sim_time": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"frame_id": "robot_0/map"},
+        ],
+    )
+
+    robot_markers = Node(
+        package=NODENAME,
+        executable="robot_markers",
+        name="robot_markers",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"frame_id": "robot_0/map"},
+        ],
+    )
+
+    search_metrics_logger = Node(
+        package=NODENAME,
+        executable="search_metrics_logger",
+        name="search_metrics_logger",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+        ],
+    )
+
+    actions = [
+        stage_and_rviz,
+        goal_relay,
+        target_graph_uniform,
+        milp_graph_search,
+        search_metrics_logger,
+        graph_viz,
+        graph_markers,
+        robot_markers,
+    ]
 
     multi_params = os.path.join(pkg_dir, "config", "nav2_params_multi.yaml")
 
@@ -308,7 +432,22 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value="polkadot",
-                description="World name (polkadot or graf201)",
+                description="World name (polkadot, graf201, hospital, my_office, big_office, more_office)",
+            ),
+            DeclareLaunchArgument(
+                "enable_graph_viz",
+                default_value="false",
+                description="Enable realtime map+graph+belief visualization window",
+            ),
+            DeclareLaunchArgument(
+                "enable_graph_markers",
+                default_value="true",
+                description="Publish graph MarkerArray for RViz",
+            ),
+            DeclareLaunchArgument(
+                "graph_viz_rotation_deg",
+                default_value="0.0",
+                description="Rotation (degrees) applied only to graph visualization",
             ),
             OpaqueFunction(function=launch_setup),
         ]

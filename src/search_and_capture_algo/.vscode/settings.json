@@ -1,0 +1,29 @@
+{
+    "ROS2.distro": "jazzy",
+    "python.autoComplete.extraPaths": [
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/rob599_hw3/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/rob599_hw2/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/rob599_HW2/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/nav_interface/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/my_mob_rob_py_package/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/hw2/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/custom_dwa_planner/lib/python3.12/site-packages",
+        "/home/roger/dev/wasp_project/ros2_holoocean_ws/install/holoocean_main/lib/python3.12/site-packages",
+        "/home/roger/dev/wasp_project/ros2_holoocean_ws/install/holoocean_interfaces/lib/python3.12/site-packages",
+        "/home/roger/dev/wasp_project/ros2_holoocean_ws/install/holoocean_examples/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/rob599_hw3/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/rob599_hw2/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/rob599_HW2/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/nav_interface/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/my_mob_rob_py_package/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/hw2/lib/python3.12/site-packages",
+        "/home/roger/dev/rob599_mob_robotics/ros2_ws/install/custom_dwa_planner/lib/python3.12/site-packages",
+        "/home/roger/dev/wasp_project/ros2_holoocean_ws/install/holoocean_main/lib/python3.12/site-packages",
+        "/home/roger/dev/wasp_project/ros2_holoocean_ws/install/holoocean_interfaces/lib/python3.12/site-packages",
+        "/home/roger/dev/wasp_project/ros2_holoocean_ws/install/holoocean_examples/lib/python3.12/site-packages",
+        "/opt/ros/jazzy/lib/python3.12/site-packages"
+    ]
+}

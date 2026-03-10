@@ -9,6 +9,10 @@ Panels:
         - /LaserScan1
         - /TF1
         - /Pose1
+        - /MarkerArray1
+        - /MarkerArray1/Topic1
+        - /MarkerArray2
+        - /MarkerArray2/Topic1
       Splitter Ratio: 0.5
     Tree Height: 739
   - Class: rviz_common/Selection
@@ -128,12 +132,12 @@ Visualization Manager:
                 {}
       Update Interval: 0
       Value: true
-    - Alpha: 0.699999988079071
+    - Alpha: 0.95
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
       Color Scheme: map
-      Draw Behind: false
+      Draw Behind: true
       Enabled: true
       Name: Map
       Topic:
@@ -170,6 +174,33 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /robot_0/goal_pose
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        graph_edges: true
+        graph_labels: true
+        graph_nodes: true
+      Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /graph_markers
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: RobotMarkers
+      Namespaces:
+        robot_cylinders: true
+        robot_labels: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /robot_markers
       Value: true
   Enabled: true
   Global Options:
