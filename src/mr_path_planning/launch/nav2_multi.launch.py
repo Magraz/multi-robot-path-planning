@@ -125,7 +125,6 @@ def launch_setup(context):
     world = LaunchConfiguration("world").perform(context)
     config = WORLD_CONFIGS[world]
     robots = config["robots"]
-    patrol_waypoints = config["patrol_waypoints"]
 
     pkg_dir = get_package_share_directory(NODENAME)
     map_yaml = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.yaml")
