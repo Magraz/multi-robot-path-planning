@@ -41,6 +41,7 @@ setup(
             "goal_relay = mr_path_planning.goal_relay:main",
             "target_waypoint_patrol = mr_path_planning.target_waypoint_patrol:main",
             "chase_target = mr_path_planning.chase_target:main",
+            "graph_visualizer = mr_path_planning.graph_visualizer:main",
         ],
     },
 )

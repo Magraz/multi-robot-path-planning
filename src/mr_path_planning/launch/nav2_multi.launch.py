@@ -56,40 +56,12 @@ WORLD_CONFIGS = {
             {"name": "robot_1", "x": 4.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            4.0,
-            4.0,
-            0.0,
-            4.0,
-            -4.0,
-            0.0,
-            -4.0,
-            -4.0,
-            0.0,
-            -4.0,
-            4.0,
-            0.0,
-        ],
     },
     "graf201": {
         "robots": [
             {"name": "robot_0", "x": -6.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": 6.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
-        ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
         ],
     },
     "hospital": {
@@ -102,40 +74,12 @@ WORLD_CONFIGS = {
             # {"name": "target_0", "x": -17.0, "y": 3.0, "yaw_deg": 45.0},
             {"name": "target_0", "x": -32.0, "y": 14.5, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
-        ],
     },
     "office_map": {
         "robots": [
             {"name": "robot_0", "x": -6.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": 6.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
-        ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
         ],
     },
     "my_office": {
@@ -144,40 +88,12 @@ WORLD_CONFIGS = {
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 7.60, "y": 0.00, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
-        ],
     },
     "big_office": {
         "robots": [
             {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
-        ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
         ],
     },
 }
@@ -268,7 +184,22 @@ def launch_setup(context):
 
     # actions = [stage_and_rviz, goal_relay, target_patrol, chase_target]
 
-    actions = [stage_and_rviz, goal_relay, chase_target]
+    # Visualize the world's GML graph in RViz (if the .gml file exists)
+    graph_file = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.gml")
+    graph_visualizer = Node(
+        package=NODENAME,
+        executable="graph_visualizer",
+        name="graph_visualizer",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"graph_file": graph_file},
+            {"map_yaml": map_yaml},
+            {"frame_id": "robot_0/map"},
+        ],
+    )
+
+    actions = [stage_and_rviz, goal_relay, chase_target, graph_visualizer]
 
     multi_params = os.path.join(pkg_dir, "config", "nav2_params_multi.yaml")
 
