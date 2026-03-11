@@ -47,7 +47,6 @@ setup(
             "realtime_graph_visualizer = mr_path_planning.realtime_graph_visualizer:main",
             "chase_target = mr_path_planning.chase_target:main",
             "milp_graph_search = mr_path_planning.milp_graph_search:main",
-            "map_generator = mr_path_planning.map_generator:main",
         ],
     },
 )

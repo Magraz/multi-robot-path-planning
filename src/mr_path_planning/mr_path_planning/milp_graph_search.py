@@ -29,6 +29,7 @@ class MilpGraphSearch(Node):
         self.declare_parameter("capture_distance", 0.6)
         self.declare_parameter("searcher_names", ["robot_0", "robot_1"])
         self.declare_parameter("target_name", "target_0")
+        self.declare_parameter("mespp_code_path", "")
 
         self.enabled = bool(self.get_parameter("enabled").value)
         self.graph_path = str(self.get_parameter("graph_path").value)
@@ -38,6 +39,7 @@ class MilpGraphSearch(Node):
         self.capture_distance = float(self.get_parameter("capture_distance").value)
         self.searchers = list(self.get_parameter("searcher_names").value)
         self.target_name = str(self.get_parameter("target_name").value)
+        self.mespp_code_path = str(self.get_parameter("mespp_code_path").value)
 
         self.latest_odom: Dict[str, Optional[Odometry]] = {name: None for name in self.searchers}
         self.latest_odom[self.target_name] = None
@@ -69,7 +71,10 @@ class MilpGraphSearch(Node):
 
     def _import_mespp(self) -> None:
         self.Mespp = None
-        code_path = Path(__file__).resolve().parents[2] / "search_and_capture_algo" / "code"
+        if self.mespp_code_path:
+            code_path = Path(self.mespp_code_path)
+        else:
+            code_path = Path(__file__).resolve().parents[2] / "search_and_capture_algo" / "code"
         if not code_path.exists():
             self.get_logger().error(f"search_and_capture_algo code path not found: {code_path}")
             return

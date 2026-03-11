@@ -58,29 +58,65 @@ def add_door(grid, x, y, horizontal, door_width=50):
 
 
 def generate_corridor_layout(grid, rng):
-    """Generate main corridors that divide the map into sections."""
+    """Generate a variable number of corridors that divide the map."""
     h, w = grid.shape
     margin = 40
+    min_spacing = 120
     corridors = []
-    corridor_width = rng.randint(50, 70)
 
-    # One horizontal corridor
-    cy = rng.randint(margin + 80, h - margin - 80)
-    draw_hline(grid, 0, cy, w)
-    draw_hline(grid, 0, cy + corridor_width, w)
-    corridors.append(("h", cy, corridor_width))
+    # Scale max corridors by map size
+    max_h = max(1, (h - 2 * margin) // 200)
+    max_v = max(1, (w - 2 * margin) // 200)
+    n_h = rng.randint(1, max(1, min(max_h, 3)))
+    n_v = rng.randint(1, max(1, min(max_v, 3)))
 
-    # One vertical corridor
-    cx = rng.randint(margin + 80, w - margin - 80)
-    draw_vline(grid, cx, 0, h)
-    draw_vline(grid, cx + corridor_width, 0, h)
-    corridors.append(("v", cx, corridor_width))
+    # Place horizontal corridors with spacing constraints
+    h_positions = _place_corridors(h, margin, n_h, min_spacing, rng)
+    for cy in h_positions:
+        cw = rng.randint(40, 70)
+        if cy + cw + WALL_THICKNESS >= h - margin:
+            cw = h - margin - cy - WALL_THICKNESS
+        if cw < 30:
+            continue
+        draw_hline(grid, 0, cy, w)
+        draw_hline(grid, 0, cy + cw, w)
+        corridors.append(("h", cy, cw))
 
-    # Clear corridor intersection
-    grid[cy:cy + corridor_width + WALL_THICKNESS,
-         cx:cx + corridor_width + WALL_THICKNESS] = FREE
+    # Place vertical corridors with spacing constraints
+    v_positions = _place_corridors(w, margin, n_v, min_spacing, rng)
+    for cx in v_positions:
+        cw = rng.randint(40, 70)
+        if cx + cw + WALL_THICKNESS >= w - margin:
+            cw = w - margin - cx - WALL_THICKNESS
+        if cw < 30:
+            continue
+        draw_vline(grid, cx, 0, h)
+        draw_vline(grid, cx + cw, 0, h)
+        corridors.append(("v", cx, cw))
+
+    # Clear all corridor intersections
+    for c1 in corridors:
+        for c2 in corridors:
+            if c1[0] == "h" and c2[0] == "v":
+                hy, hw = c1[1], c1[2]
+                vx, vw = c2[1], c2[2]
+                grid[hy : hy + hw + WALL_THICKNESS,
+                     vx : vx + vw + WALL_THICKNESS] = FREE
 
     return corridors
+
+
+def _place_corridors(span, margin, count, min_spacing, rng):
+    """Place `count` corridor positions within `span`, keeping minimum spacing."""
+    positions = []
+    for _ in range(count * 10):
+        pos = rng.randint(margin + 40, span - margin - 80)
+        if all(abs(pos - p) >= min_spacing for p in positions):
+            positions.append(pos)
+        if len(positions) == count:
+            break
+    positions.sort()
+    return positions
 
 
 def get_regions(grid, corridors):
@@ -159,21 +195,31 @@ def add_corridor_doors(grid, corridors, regions, rng):
         if orient == "h":
             for wall_y in [pos, pos + cw]:
                 # Find regions that border this wall
-                for (rx, ry, rw, rh) in regions:
+                for rx, ry, rw, rh in regions:
                     if ry == wall_y + WALL_THICKNESS or ry + rh == wall_y:
                         # Punch a centered door for this region
                         door_x = rx + (rw - door_width) // 2
                         if door_x > rx + 4 and door_x + door_width < rx + rw - 4:
-                            add_door(grid, door_x, wall_y, horizontal=True,
-                                     door_width=door_width)
+                            add_door(
+                                grid,
+                                door_x,
+                                wall_y,
+                                horizontal=True,
+                                door_width=door_width,
+                            )
         else:
             for wall_x in [pos, pos + cw]:
-                for (rx, ry, rw, rh) in regions:
+                for rx, ry, rw, rh in regions:
                     if rx == wall_x + WALL_THICKNESS or rx + rw == wall_x:
                         door_y = ry + (rh - door_width) // 2
                         if door_y > ry + 4 and door_y + door_width < ry + rh - 4:
-                            add_door(grid, wall_x, door_y, horizontal=False,
-                                     door_width=door_width)
+                            add_door(
+                                grid,
+                                wall_x,
+                                door_y,
+                                horizontal=False,
+                                door_width=door_width,
+                            )
 
 
 def generate_office_map(width_px=800, height_px=600, resolution=0.05, seed=None):

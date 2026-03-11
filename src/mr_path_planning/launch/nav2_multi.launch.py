@@ -57,40 +57,12 @@ WORLD_CONFIGS = {
             {"name": "robot_1", "x": 4.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            4.0,
-            4.0,
-            0.0,
-            4.0,
-            -4.0,
-            0.0,
-            -4.0,
-            -4.0,
-            0.0,
-            -4.0,
-            4.0,
-            0.0,
-        ],
     },
     "graf201": {
         "robots": [
             {"name": "robot_0", "x": -8.00, "y": -6.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": 8.00, "y": -6.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 8.00, "yaw_deg": 45.0},
-        ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
         ],
     },
     "hospital": {
@@ -103,40 +75,12 @@ WORLD_CONFIGS = {
             # {"name": "target_0", "x": -17.0, "y": 3.0, "yaw_deg": 45.0},
             {"name": "target_0", "x": -32.0, "y": 14.5, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
-        ],
     },
     "office_map": {
         "robots": [
             {"name": "robot_0", "x": -6.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": 6.00, "y": -4.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
-        ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
         ],
     },
     "my_office": {
@@ -145,20 +89,6 @@ WORLD_CONFIGS = {
             {"name": "robot_1", "x": -4.00, "y": -5.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": -10.00, "y": 8.00, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
-        ],
     },
     "big_office": {
         "robots": [
@@ -166,40 +96,12 @@ WORLD_CONFIGS = {
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
         ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
-        ],
     },
     "more_office": {
         "robots": [
             {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
-        ],
-        "patrol_waypoints": [
-            14.0,
-            7.0,
-            0.0,
-            14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            -7.0,
-            0.0,
-            -14.0,
-            7.0,
-            0.0,
         ],
     },
 }
@@ -234,7 +136,6 @@ def launch_setup(context):
     graph_viz_rotation_deg = LaunchConfiguration("graph_viz_rotation_deg")
     config = WORLD_CONFIGS[world]
     robots = config["robots"]
-    patrol_waypoints = config["patrol_waypoints"]
 
     pkg_dir = get_package_share_directory(NODENAME)
     map_yaml = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.yaml")
@@ -243,13 +144,13 @@ def launch_setup(context):
     graph_path = graph_sparse if os.path.exists(graph_sparse) else graph_dense
 
     # ------------------------------------------------------------------
-    # Stage + RViz
+    # Stage simulator
     #   enforce_prefixes=true   → topics prefixed: /robot_N/base_scan etc.
     #   one_tf_tree=true        → shared TF tree on /tf with prefixed frames
     # ------------------------------------------------------------------
-    stage_and_rviz = IncludeLaunchDescription(
+    stage = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(pkg_dir, "launch", "demo.launch.py")
+            os.path.join(pkg_dir, "launch", "stage.launch.py")
         ),
         launch_arguments={
             "world": world,
@@ -259,13 +160,14 @@ def launch_setup(context):
         }.items(),
     )
 
-    # Relay /goal_pose from RViz to each robot's namespaced goal_pose topic
-    goal_relay = Node(
-        package=NODENAME,
-        executable="goal_relay",
-        name="goal_relay",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
+    # RViz with a single shared config for all worlds
+    rviz = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_dir, "launch", "rviz.launch.py")
+        ),
+        launch_arguments={
+            "config": "nav2_multi",
+        }.items(),
     )
 
     target_graph_uniform = Node(
@@ -285,6 +187,10 @@ def launch_setup(context):
     )
 
     # High-level graph routing with MILP; Nav2 executes waypoint motion.
+    # pkg_dir is <ws>/install/<pkg>/share/<pkg>; walk up to workspace root.
+    ws_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(pkg_dir))))
+    mespp_code_path = os.path.join(ws_root, "src", "search_and_capture_algo", "code")
+
     milp_graph_search = Node(
         package=NODENAME,
         executable="milp_graph_search",
@@ -300,6 +206,7 @@ def launch_setup(context):
             {"capture_distance": 0.6},
             {"searcher_names": ["robot_0", "robot_1"]},
             {"target_name": "target_0"},
+            {"mespp_code_path": mespp_code_path},
         ],
     )
 
@@ -348,6 +255,8 @@ def launch_setup(context):
         ],
     )
 
+    csv_path = os.path.join(ws_root, "results", f"search_metrics_{world}.csv")
+
     search_metrics_logger = Node(
         package=NODENAME,
         executable="search_metrics_logger",
@@ -357,14 +266,15 @@ def launch_setup(context):
             {"use_sim_time": True},
             {"graph_path": graph_path},
             {"map_yaml": map_yaml},
+            {"metrics_csv": csv_path},
             {"searcher_names": ["robot_0", "robot_1"]},
             {"target_name": "target_0"},
         ],
     )
 
     actions = [
-        stage_and_rviz,
-        goal_relay,
+        stage,
+        rviz,
         target_graph_uniform,
         milp_graph_search,
         search_metrics_logger,

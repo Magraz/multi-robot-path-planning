@@ -149,7 +149,10 @@ class GraphVisualizer(Node):
             img_height = _read_image_height(image_path)
             for node_id, node in nodes.items():
                 if len(node["world"]) >= 2:
-                    positions[node_id] = (float(node["world"][0]), float(node["world"][1]))
+                    positions[node_id] = (
+                        float(node["world"][0]),
+                        float(node["world"][1]),
+                    )
                 elif len(node["pixel"]) >= 2:
                     positions[node_id] = _pixel_to_world(
                         float(node["pixel"][0]),
@@ -162,7 +165,10 @@ class GraphVisualizer(Node):
         else:
             for node_id, node in nodes.items():
                 if len(node["world"]) >= 2:
-                    positions[node_id] = (float(node["world"][0]), float(node["world"][1]))
+                    positions[node_id] = (
+                        float(node["world"][0]),
+                        float(node["world"][1]),
+                    )
 
         if not positions:
             self.get_logger().error(
