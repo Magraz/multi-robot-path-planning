@@ -213,6 +213,24 @@ def launch_setup(context):
         ],
     )
 
+    exhaustive_graph_search = Node(
+        package=NODENAME,
+        executable="exhaustive_graph_search",
+        name="exhaustive_graph_search",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"enabled": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"replan_period": 4.0},
+            {"capture_distance": 1.0},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"node_reach_distance": 1.0},
+        ],
+    )
+
     graph_viz = Node(
         package=NODENAME,
         executable="realtime_graph_visualizer",
@@ -279,7 +297,8 @@ def launch_setup(context):
         stage,
         rviz,
         target_graph_uniform,
-        milp_graph_search,
+        # milp_graph_search,
+        exhaustive_graph_search,
         search_metrics_logger,
         graph_viz,
         graph_markers,

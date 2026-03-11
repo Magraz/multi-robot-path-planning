@@ -3,8 +3,8 @@
 
 Outputs:
   1) One combined boxplot figure (grouped by metric), with all graphs:
-     - total explored percentage by graph
-     - elapsed_sec
+     - total explored percentage by graph, split by method color
+     - elapsed_sec, split by method color
   2) One combined all-maps scatter plot:
      - x: elapsed_sec
      - y: total explored percentage
@@ -22,9 +22,14 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
 
 NODE_LINE_RE = re.compile(r"^\s*node\s*\[")
+METHOD_COLORS = {
+    "baseline": "#e76f51",
+    "mespp": "#457b9d",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,13 +37,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--csv",
         type=Path,
-        nargs="+",
-        default=[
-            Path("results/search_metrics_world_1.csv"),
-            Path("results/search_metrics_world_2.csv"),
-            Path("results/search_metrics_world_3.csv"),
-        ],
-        help="CSV metrics files.",
+        nargs="*",
+        default=None,
+        help="CSV metrics files. If omitted, auto-discovers search_metrics_*.csv with method tags.",
     )
     parser.add_argument(
         "--gml-dir",
@@ -52,7 +53,27 @@ def parse_args() -> argparse.Namespace:
         default=Path("results"),
         help="Output directory for generated plots.",
     )
+    parser.add_argument(
+        "--top-k",
+        type=int,
+        default=5,
+        help="Use only the lowest K runs by elapsed_sec per (graph, method).",
+    )
     return parser.parse_args()
+
+
+def discover_default_csvs() -> list[Path]:
+    candidates = sorted(Path("results").glob("search_metrics_*.csv"))
+    return [p for p in candidates if infer_method_from_filename(p) is not None]
+
+
+def infer_method_from_filename(csv_path: Path) -> str | None:
+    stem = csv_path.stem.lower()
+    if "mespp" in stem:
+        return "mespp"
+    if "baseline" in stem:
+        return "baseline"
+    return None
 
 
 def count_gml_nodes(gml_path: Path) -> int:
@@ -87,8 +108,14 @@ def load_records(
 ) -> tuple[list[dict], dict[str, int]]:
     rows: list[dict] = []
     node_counts_by_graph: dict[str, int] = {}
+    skipped_csvs: list[Path] = []
 
     for csv_path in csv_paths:
+        method = infer_method_from_filename(csv_path)
+        if method is None:
+            skipped_csvs.append(csv_path)
+            continue
+
         with csv_path.open("r", newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -110,59 +137,126 @@ def load_records(
                 rows.append(
                     {
                         "graph": graph,
+                        "method": method,
                         "elapsed_sec": elapsed,
                         "total_nodes_explored": total_nodes_explored,
                         "explored_pct": explored_pct,
                     }
                 )
 
+    if skipped_csvs:
+        print("Skipped CSV files without method tag (expected 'baseline' or 'mespp'):")
+        for p in skipped_csvs:
+            print(f"  {p}")
+
     if not rows:
         raise RuntimeError("No metric rows loaded from CSV inputs.")
     return rows, node_counts_by_graph
 
 
+def select_fastest_rows(rows: list[dict], top_k: int) -> list[dict]:
+    grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for row in rows:
+        grouped[(row["graph"], row["method"])].append(row)
+
+    selected: list[dict] = []
+    for key in sorted(grouped):
+        fastest = sorted(grouped[key], key=lambda r: r["elapsed_sec"])[:top_k]
+        selected.extend(fastest)
+    return selected
+
+
 def make_grouped_boxplots(
     rows: list[dict], node_counts_by_graph: dict[str, int], out_dir: Path
 ) -> Path:
-    grouped: dict[str, list[dict]] = defaultdict(list)
+    grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    method_set: set[str] = set()
+    graph_set: set[str] = set()
     for row in rows:
-        grouped[row["graph"]].append(row)
+        grouped[(row["graph"], row["method"])].append(row)
+        graph_set.add(row["graph"])
+        method_set.add(row["method"])
 
-    graphs = sorted(grouped)
-    labels = [f"{Path(g).stem}\n(n={node_counts_by_graph[g]})" for g in graphs]
-    explored_data = [[r["explored_pct"] for r in grouped[g]] for g in graphs]
-    elapsed_data = [[r["elapsed_sec"] for r in grouped[g]] for g in graphs]
+    graphs = sorted(graph_set)
+    methods = [m for m in ("baseline", "mespp") if m in method_set]
+    for m in sorted(method_set):
+        if m not in methods:
+            methods.append(m)
 
-    fig, axes = plt.subplots(1, 2, figsize=(12.2, 5.0))
+    fig, axes = plt.subplots(1, 2, figsize=(14.0, 5.3))
 
-    axes[0].boxplot(
-        explored_data,
-        labels=labels,
-        patch_artist=True,
-        boxprops={"facecolor": "#8ecae6"},
-        medianprops={"color": "#1d3557", "linewidth": 1.5},
+    def draw_metric(ax: plt.Axes, metric_key: str, ylabel: str, title: str) -> None:
+        data: list[list[float]] = []
+        positions: list[float] = []
+        colors: list[str] = []
+        tick_positions: list[float] = []
+        tick_labels: list[str] = []
+
+        group_width = len(methods) + 1
+        for graph_idx, graph in enumerate(graphs):
+            base = graph_idx * group_width + 1
+            graph_positions: list[float] = []
+            for method_idx, method in enumerate(methods):
+                group_rows = grouped.get((graph, method), [])
+                if not group_rows:
+                    continue
+                values = [r[metric_key] for r in group_rows]
+                pos = base + method_idx
+                data.append(values)
+                positions.append(pos)
+                colors.append(METHOD_COLORS.get(method, "#8d99ae"))
+                graph_positions.append(pos)
+
+            if graph_positions:
+                tick_positions.append(sum(graph_positions) / len(graph_positions))
+                tick_labels.append(
+                    f"{Path(graph).stem}\n(n={node_counts_by_graph[graph]})"
+                )
+
+        artists = ax.boxplot(
+            data,
+            positions=positions,
+            widths=0.72,
+            patch_artist=True,
+            medianprops={"color": "#222222", "linewidth": 1.5},
+        )
+        for patch, color in zip(artists["boxes"], colors):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.82)
+
+        ax.set_title(title)
+        ax.set_ylabel(ylabel)
+        ax.set_xticks(tick_positions)
+        ax.set_xticklabels(tick_labels, rotation=10, ha="right")
+        ax.grid(axis="y", alpha=0.25)
+
+    draw_metric(
+        axes[0],
+        metric_key="explored_pct",
+        ylabel="Percent of graph nodes",
+        title="Total nodes explored (%)",
     )
-    axes[0].set_title("Total nodes explored (%)")
-    axes[0].set_ylabel("Percent of graph nodes")
-    axes[0].grid(axis="y", alpha=0.25)
-
-    axes[1].boxplot(
-        elapsed_data,
-        labels=labels,
-        patch_artist=True,
-        boxprops={"facecolor": "#b7e4c7"},
-        medianprops={"color": "#2d6a4f", "linewidth": 1.5},
+    draw_metric(
+        axes[1],
+        metric_key="elapsed_sec",
+        ylabel="Seconds",
+        title="Elapsed time",
     )
-    axes[1].set_title("Elapsed time (elapsed_sec)")
-    axes[1].set_ylabel("Seconds")
-    axes[1].grid(axis="y", alpha=0.25)
 
-    for ax in axes:
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(12)
-            tick.set_ha("right")
+    legend_handles = [
+        Patch(
+            facecolor=METHOD_COLORS.get(m, "#8d99ae"),
+            edgecolor="black",
+            label=m.upper(),
+        )
+        for m in methods
+    ]
+    axes[1].legend(handles=legend_handles, loc="upper right", frameon=False)
 
-    fig.suptitle("Search metrics grouped by data type across all graphs", fontsize=12)
+    fig.suptitle(
+        "MESPP vs. Baseline grouped by percentage of nodes explored, and elapsed time.",
+        fontsize=12,
+    )
     fig.tight_layout()
 
     out_path = out_dir / "boxplots_grouped_by_metric.png"
@@ -174,25 +268,29 @@ def make_grouped_boxplots(
 def make_all_maps_scatter(
     rows: list[dict], node_counts_by_graph: dict[str, int], out_dir: Path
 ) -> Path:
-    grouped: dict[str, list[dict]] = defaultdict(list)
+    grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for row in rows:
-        grouped[row["graph"]].append(row)
+        grouped[(row["graph"], row["method"])].append(row)
 
     fig, ax = plt.subplots(figsize=(8.6, 5.2))
-    cmap = plt.get_cmap("tab10")
+    graph_markers = ["o", "s", "^", "D", "P", "X"]
+    graph_to_marker: dict[str, str] = {}
+    for idx, graph in enumerate(sorted({r["graph"] for r in rows})):
+        graph_to_marker[graph] = graph_markers[idx % len(graph_markers)]
 
-    for idx, graph in enumerate(sorted(grouped)):
-        graph_rows = grouped[graph]
+    for graph, method in sorted(grouped):
+        graph_rows = grouped[(graph, method)]
         ax.scatter(
             [r["elapsed_sec"] for r in graph_rows],
             [r["explored_pct"] for r in graph_rows],
             s=52,
             alpha=0.85,
-            color=cmap(idx),
-            label=f"{graph} (nodes={node_counts_by_graph[graph]})",
+            color=METHOD_COLORS.get(method, "#8d99ae"),
+            marker=graph_to_marker[graph],
+            label=f"{Path(graph).stem} | {method.upper()}",
         )
 
-    ax.set_title("All maps: elapsed_sec vs total nodes explored (%)")
+    ax.set_title("All maps: elapsed_sec vs total nodes explored (%) | method-colored")
     ax.set_xlabel("elapsed_sec (s)")
     ax.set_ylabel("Total explored nodes (%)")
     ax.grid(alpha=0.3)
@@ -211,13 +309,28 @@ def main() -> None:
     out_dir = args.out_dir.resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    rows, node_counts_by_graph = load_records(args.csv, args.gml_dir)
+    csv_paths = args.csv if args.csv else discover_default_csvs()
+    if not csv_paths:
+        raise RuntimeError(
+            "No CSV files found. Provide --csv files with 'baseline' or 'mespp' in filename."
+        )
+
+    rows, node_counts_by_graph = load_records(csv_paths, args.gml_dir)
+    rows = select_fastest_rows(rows, args.top_k)
     grouped_boxplot_path = make_grouped_boxplots(rows, node_counts_by_graph, out_dir)
     all_maps_path = make_all_maps_scatter(rows, node_counts_by_graph, out_dir)
+
+    counts: dict[tuple[str, str], int] = defaultdict(int)
+    for row in rows:
+        counts[(row["graph"], row["method"])] += 1
 
     print("Node counts by graph:")
     for graph in sorted(node_counts_by_graph):
         print(f"  {graph}: {node_counts_by_graph[graph]} nodes")
+
+    print(f"\nRows selected per (graph, method) using top_k={args.top_k}:")
+    for graph, method in sorted(counts):
+        print(f"  {graph} | {method}: {counts[(graph, method)]}")
 
     print("\nGenerated plots:")
     print(f"  {grouped_boxplot_path}")
