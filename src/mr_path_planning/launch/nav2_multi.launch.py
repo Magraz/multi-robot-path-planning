@@ -85,9 +85,9 @@ WORLD_CONFIGS = {
     },
     "my_office": {
         "robots": [
-            {"name": "robot_0", "x": -20.00, "y": -5.00, "yaw_deg": 45.0},
+            {"name": "robot_0", "x": -18.00, "y": -5.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -4.00, "y": -5.00, "yaw_deg": 45.0},
-            {"name": "target_0", "x": -10.00, "y": 8.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 0.00, "y": 8.00, "yaw_deg": 45.0},
         ],
     },
     "big_office": {
@@ -188,7 +188,9 @@ def launch_setup(context):
 
     # High-level graph routing with MILP; Nav2 executes waypoint motion.
     # pkg_dir is <ws>/install/<pkg>/share/<pkg>; walk up to workspace root.
-    ws_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(pkg_dir))))
+    ws_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(pkg_dir)))
+    )
     mespp_code_path = os.path.join(ws_root, "src", "search_and_capture_algo", "code")
 
     milp_graph_search = Node(
@@ -203,7 +205,7 @@ def launch_setup(context):
             {"map_yaml": map_yaml},
             {"horizon": 10},
             {"replan_period": 4.0},
-            {"capture_distance": 0.6},
+            {"capture_distance": 1.0},
             {"searcher_names": ["robot_0", "robot_1"]},
             {"target_name": "target_0"},
             {"mespp_code_path": mespp_code_path},

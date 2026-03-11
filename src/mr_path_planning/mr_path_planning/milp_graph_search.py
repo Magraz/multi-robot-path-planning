@@ -2,12 +2,13 @@ import math
 import os
 import re
 import sys
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import igraph as ig
 import rclpy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, TwistStamped
 from nav2_msgs.action import FollowWaypoints
 from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
@@ -56,6 +57,12 @@ class MilpGraphSearch(Node):
         self.stop_pub = self.create_publisher(Bool, "/search_capture/stop", 10)
         self.capture_pose_pub = self.create_publisher(PoseStamped, "/search_capture/location", 10)
 
+        self.cmd_vel_pubs: Dict[str, any] = {}
+        for name in list(self.searchers) + [self.target_name]:
+            self.cmd_vel_pubs[name] = self.create_publisher(
+                TwistStamped, f"/{name}/cmd_vel", 10
+            )
+
         self._load_graph_and_coordinates()
         self._import_mespp()
 
@@ -64,6 +71,7 @@ class MilpGraphSearch(Node):
 
         self.timer = self.create_timer(self.replan_period, self._tick)
         self.stopped = False
+        self._solving = False
 
         self.get_logger().info(
             f"MILP graph search ready | graph={self.graph_path} | searchers={self.searchers} | target={self.target_name}"
@@ -90,8 +98,23 @@ class MilpGraphSearch(Node):
     def _odom_cb(self, name: str):
         def cb(msg: Odometry):
             self.latest_odom[name] = msg
+            if not self.stopped and self.graph is not None:
+                self._fast_capture_check()
 
         return cb
+
+    def _fast_capture_check(self) -> None:
+        """Check capture at odom frequency so we never miss a close pass."""
+        if any(self.latest_odom[n] is None for n in self.latest_odom):
+            return
+
+        target_xy = self._xy_from_odom(self.latest_odom[self.target_name])
+        for name in self.searchers:
+            sx, sy = self._xy_from_odom(self.latest_odom[name])
+            if math.dist((sx, sy), target_xy) <= self.capture_distance:
+                self.get_logger().info(f"Capture condition met by {name}")
+                self._handle_capture(name)
+                return
 
     def _tick(self) -> None:
         if not self.enabled or self.stopped:
@@ -104,54 +127,67 @@ class MilpGraphSearch(Node):
             self.get_logger().info("Waiting for all odometry topics...")
             return
 
-        event, capturer = self._check_capture_or_blocked()
-        if event == "capture":
-            self._handle_capture(capturer)
-            return
+        event, _ = self._check_capture_or_blocked()
         if event == "blocked":
             self._handle_blocked()
             return
 
-        try:
-            self._plan_and_dispatch()
-        except Exception as exc:  # noqa: BLE001
-            self.get_logger().error(f"MILP planning/dispatch failed: {exc}")
+        if self._solving:
+            self.get_logger().info("MILP solve still in progress, skipping this tick")
+            return
 
-    def _plan_and_dispatch(self) -> None:
+        # Snapshot current positions for the solver thread.
         target_xy = self._xy_from_odom(self.latest_odom[self.target_name])
         target_start = self._nearest_node(target_xy)
-
         searcher_starts = []
         for name in self.searchers:
             xy = self._xy_from_odom(self.latest_odom[name])
             searcher_starts.append(self._nearest_node(xy))
 
-        solver = self.Mespp(
-            graph_path=self.graph_path,
-            horizon=self.horizon,
-            num_searchers=len(self.searchers),
-            target_start_vertex=target_start,
-            searcher_starts=searcher_starts,
-            motion="uniform",
+        self._solving = True
+        thread = threading.Thread(
+            target=self._solve_and_dispatch,
+            args=(target_start, searcher_starts),
+            daemon=True,
         )
-        solver.build_milp_variables()
-        solver.m.update()
-        solver.build_milp_constraints()
-        solver.configure_objective()
-        solver.plan()
+        thread.start()
 
-        if solver.m.status != 2:  # GRB.OPTIMAL
-            self.get_logger().warn("MILP did not return optimal solution; skipping dispatch")
-            return
+    def _solve_and_dispatch(self, target_start: int, searcher_starts: List[int]) -> None:
+        """Run the MILP solver in a background thread, then dispatch routes."""
+        try:
+            solver = self.Mespp(
+                graph_path=self.graph_path,
+                horizon=self.horizon,
+                num_searchers=len(self.searchers),
+                target_start_vertex=target_start,
+                searcher_starts=searcher_starts,
+                motion="uniform",
+            )
+            solver.build_milp_variables()
+            solver.m.update()
+            solver.build_milp_constraints()
+            solver.configure_objective()
+            solver.plan()
 
-        routes = self._extract_routes(solver)
-        for idx, robot in enumerate(self.searchers):
-            node_route = routes[idx]
-            waypoint_nodes = [n for i, n in enumerate(node_route) if i == 0 or n != node_route[i - 1]]
-            if len(waypoint_nodes) <= 1:
-                continue
-            poses = [self._node_to_pose(robot, n) for n in waypoint_nodes[1:]]
-            self._send_follow_waypoints(robot, poses)
+            if self.stopped:
+                return
+
+            if solver.m.status != 2:  # GRB.OPTIMAL
+                self.get_logger().warn("MILP did not return optimal solution; skipping dispatch")
+                return
+
+            routes = self._extract_routes(solver)
+            for idx, robot in enumerate(self.searchers):
+                node_route = routes[idx]
+                waypoint_nodes = [n for i, n in enumerate(node_route) if i == 0 or n != node_route[i - 1]]
+                if len(waypoint_nodes) <= 1:
+                    continue
+                poses = [self._node_to_pose(robot, n) for n in waypoint_nodes[1:]]
+                self._send_follow_waypoints(robot, poses)
+        except Exception as exc:  # noqa: BLE001
+            self.get_logger().error(f"MILP planning/dispatch failed: {exc}")
+        finally:
+            self._solving = False
 
     def _extract_routes(self, solver) -> List[List[int]]:
         routes = [[] for _ in self.searchers]
@@ -176,13 +212,26 @@ class MilpGraphSearch(Node):
             self.get_logger().warn(f"/{robot}/follow_waypoints action server unavailable")
             return
 
-        prev_handle = self.active_goal_handles.get(robot)
+        prev_handle = self.active_goal_handles.pop(robot, None)
         if prev_handle is not None:
             try:
-                prev_handle.cancel_goal_async()
+                cancel_future = prev_handle.cancel_goal_async()
+                cancel_future.add_done_callback(
+                    lambda f, r=robot, p=poses: self._on_cancel_done(r, p)
+                )
+                return  # New goal sent after cancel completes.
             except Exception:  # noqa: BLE001
                 pass
 
+        self._send_new_goal(robot, poses)
+
+    def _on_cancel_done(self, robot: str, poses: List[PoseStamped]) -> None:
+        if self.stopped:
+            return
+        self._send_new_goal(robot, poses)
+
+    def _send_new_goal(self, robot: str, poses: List[PoseStamped]) -> None:
+        client = self.follow_clients[robot]
         goal = FollowWaypoints.Goal()
         goal.poses = poses
 
@@ -217,7 +266,7 @@ class MilpGraphSearch(Node):
         target_node = self._nearest_node(target_xy)
         neighbors = self.graph.neighbors(target_node)
         if not neighbors:
-            return False
+            return "none", None
 
         occupied = set()
         for name in self.searchers:
@@ -228,6 +277,16 @@ class MilpGraphSearch(Node):
             return "blocked", None
 
         return "none", None
+
+    def _send_zero_velocity(self, robot: str) -> None:
+        """Send zero cmd_vel to a specific robot for an immediate physical stop."""
+        pub = self.cmd_vel_pubs.get(robot)
+        if pub is None:
+            return
+        msg = TwistStamped()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = f"{robot}/base_link"
+        pub.publish(msg)
 
     def _publish_stop(self) -> None:
         msg = Bool()
@@ -249,7 +308,9 @@ class MilpGraphSearch(Node):
         self.stopped = True
         target_xy = self._xy_from_odom(self.latest_odom[self.target_name])
 
-        # Stop target and current searcher goals first.
+        # Immediately halt the capturer, then cancel Nav2 goals.
+        if capturer is not None:
+            self._send_zero_velocity(capturer)
         self._publish_stop()
         self._publish_capture_pose(*target_xy)
         for robot, handle in self.active_goal_handles.items():
@@ -280,6 +341,8 @@ class MilpGraphSearch(Node):
         if self.stopped:
             return
         self.stopped = True
+        for name in self.cmd_vel_pubs:
+            self._send_zero_velocity(name)
         self._publish_stop()
         for robot, handle in self.active_goal_handles.items():
             if handle is not None:

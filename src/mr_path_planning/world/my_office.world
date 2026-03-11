@@ -40,7 +40,7 @@ turtlebot_with_laser
 (
   name "robot_0"
   color "blue"
-  pose [ -20.00 -5.00 0 45 ]
+  pose [ -18.00 -5.00 0 45 ]
 )
 
 turtlebot_with_laser
@@ -55,5 +55,5 @@ turtlebot_with_laser
   name "target_0"
   color "red"
   velocity_bounds [-0.44 0.44 0 0 0 0 -162.6 162.6]  # -/+0.22 m/s, -/+2.84 rad/s (deg)
-  pose [ -10.00 8.00 0 45 ]
+  pose [ 0.00 8.00 0 45 ]
 )
