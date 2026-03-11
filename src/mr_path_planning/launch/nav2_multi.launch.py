@@ -209,6 +209,7 @@ def launch_setup(context):
             {"searcher_names": ["robot_0", "robot_1"]},
             {"target_name": "target_0"},
             {"mespp_code_path": mespp_code_path},
+            {"solver_time_limit": 5.0},
         ],
     )
 
