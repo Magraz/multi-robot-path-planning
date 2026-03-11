@@ -1,2 +1,0 @@
-timestamp,outcome,elapsed_sec,unique_nodes_all,graph,nodes_robot_0,nodes_robot_1
-2026-03-10T17:55:05,STOPPED (non-capture or blocked),119.651,17,big_office.gml,11,10

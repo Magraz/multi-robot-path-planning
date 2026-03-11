@@ -83,21 +83,21 @@ WORLD_CONFIGS = {
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
         ],
     },
-    "my_office": {
+    "world_1": {
         "robots": [
             {"name": "robot_0", "x": -18.00, "y": -5.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -4.00, "y": -5.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 0.00, "y": 8.00, "yaw_deg": 45.0},
         ],
     },
-    "big_office": {
+    "world_2": {
         "robots": [
             {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
         ],
     },
-    "more_office": {
+    "world_3": {
         "robots": [
             {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
@@ -345,7 +345,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value="polkadot",
-                description="World name (polkadot, graf201, hospital, my_office, big_office, more_office)",
+                description="World name (polkadot, graf201, hospital, world_1, world_2, world_3)",
             ),
             DeclareLaunchArgument(
                 "enable_graph_viz",

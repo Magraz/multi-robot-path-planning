@@ -1,4 +1,4 @@
-# my_office.world - auto-generated office environment
+# world_3.world - auto-generated office environment
 
 include "include/robots.inc"
 
@@ -29,10 +29,10 @@ window
 
 floorplan
 (
-  name "my_office"
+  name "world_3"
   size [40.000 25.000 0.800]
   pose [0 0 0 0]
-  bitmap "bitmaps/my_office.png"
+  bitmap "bitmaps/world_3.png"
   gui_move 0
 )
 
@@ -40,14 +40,14 @@ turtlebot_with_laser
 (
   name "robot_0"
   color "blue"
-  pose [ -18.00 -5.00 0 45 ]
+  pose [ -19.00 2.00 0 45 ]
 )
 
 turtlebot_with_laser
 (
   name "robot_1"
   color "blue"
-  pose [ -4.00 -5.00 0 45 ]
+  pose [ -5.70 2.00 0 45 ]
 )
 
 turtlebot_with_laser
@@ -55,5 +55,5 @@ turtlebot_with_laser
   name "target_0"
   color "red"
   velocity_bounds [-0.44 0.44 0 0 0 0 -162.6 162.6]  # -/+0.22 m/s, -/+2.84 rad/s (deg)
-  pose [ 0.00 8.00 0 45 ]
+  pose [ 15.00 -10.00 0 45 ]
 )

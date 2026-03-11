@@ -61,15 +61,15 @@ source install/setup.bash
 
 ## Run
 
-Available worlds: `polkadot`, `graf201`, `hospital`, `my_office`, `big_office`, `more_office`
+Available worlds: `polkadot`, `graf201`, `hospital`, `world_1`, `world_2`, `world_3`
 
 ```bash
-ros2 launch mr_path_planning nav2_multi.launch.py world:=my_office
+ros2 launch mr_path_planning nav2_multi.launch.py world:=world_1
 ```
 
 The graph overlay in RViz is on by default. To disable it:
 ```bash
-ros2 launch mr_path_planning nav2_multi.launch.py world:=my_office enable_graph_markers:=false
+ros2 launch mr_path_planning nav2_multi.launch.py world:=world_1 enable_graph_markers:=false
 ```
 
 ### Kill all processes
@@ -81,5 +81,5 @@ pkill -9 -f "mr_path_planning"; pkill -9 -f "nav2"; pkill -9 stage_ros2; pkill -
 ```bash
 cd src/search_and_capture_algo
 python3 code/main.py --graph ../mr_path_planning/world/bitmaps/my_office_sparse.gml --horizon 10 --searchers 2 --motion uniform
-python3 animate_results.py --results-dir results --output results/my_office.mp4 --fps 3
+python3 animate_results.py --results-dir results --output results/world_1.mp4 --fps 3
 ```

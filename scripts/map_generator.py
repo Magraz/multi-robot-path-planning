@@ -6,7 +6,7 @@ ros2 run mr_path_planning map_generator \
   --width 800 --height 500 \
   --resolution 0.05 \
   --seed 123 \
-  --name my_office \
+  --name world_1 \
   --output-dir src/mr_path_planning/world/bitmaps
 """
 
@@ -100,8 +100,9 @@ def generate_corridor_layout(grid, rng):
             if c1[0] == "h" and c2[0] == "v":
                 hy, hw = c1[1], c1[2]
                 vx, vw = c2[1], c2[2]
-                grid[hy : hy + hw + WALL_THICKNESS,
-                     vx : vx + vw + WALL_THICKNESS] = FREE
+                grid[hy : hy + hw + WALL_THICKNESS, vx : vx + vw + WALL_THICKNESS] = (
+                    FREE
+                )
 
     return corridors
 

@@ -1,4 +1,4 @@
-# big_office.world - auto-generated office environment
+# world_2.world - auto-generated office environment
 
 include "include/robots.inc"
 
@@ -29,10 +29,10 @@ window
 
 floorplan
 (
-  name "big_office"
+  name "world_2"
   size [40.000 25.000 0.800]
   pose [0 0 0 0]
-  bitmap "bitmaps/big_office.png"
+  bitmap "bitmaps/world_2.png"
   gui_move 0
 )
 
