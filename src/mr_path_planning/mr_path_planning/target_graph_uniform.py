@@ -47,6 +47,7 @@ class TargetGraphUniform(Node):
         self.busy = False
         self.stopped = False
         self.tick_count = 0
+        self.prev_node: Optional[int] = None
 
         self.timer = self.create_timer(self.period, self._tick)
         self.get_logger().info(
@@ -69,13 +70,14 @@ class TargetGraphUniform(Node):
         current_xy = self._xy_from_odom(self.latest_odom)
         current_node = self._nearest_node(current_xy)
         neighbors = self.graph.neighbors(current_node)
-        candidates = [current_node] + neighbors
-        
+
+        # Exclude the previous node to avoid backtracking
+        candidates = [n for n in neighbors if n != self.prev_node]
         if not candidates:
-            self.get_logger().warn(f"No candidates for movement from node {current_node}")
-            return
-            
+            candidates = neighbors if neighbors else [current_node]
+
         next_node = random.choice(candidates)
+        self.prev_node = current_node
 
         pose = self._node_to_pose(next_node)
         goal = NavigateToPose.Goal()

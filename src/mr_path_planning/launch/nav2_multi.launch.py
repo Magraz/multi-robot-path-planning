@@ -180,8 +180,8 @@ def launch_setup(context):
             {"target_name": "target_0"},
             {"graph_path": graph_path},
             {"map_yaml": map_yaml},
-            {"period": 4.0},
-            {"move_every_n_cycles": 2},
+            {"period": 2.0},
+            {"move_every_n_cycles": 1},
             {"seed": 0},
         ],
     )
@@ -293,21 +293,19 @@ def launch_setup(context):
         ],
     )
 
-    actions = [
-        stage,
-        rviz,
-        target_graph_uniform,
-        # milp_graph_search,
-        exhaustive_graph_search,
-        search_metrics_logger,
-        graph_viz,
-        graph_markers,
-        robot_markers,
-    ]
+    # ------------------------------------------------------------------
+    # Phase 1: Stage simulator + RViz (immediate)
+    # ------------------------------------------------------------------
+    actions = [stage, rviz]
 
+    # ------------------------------------------------------------------
+    # Phase 2: Nav2 stacks (staggered by 5 s per robot)
+    # ------------------------------------------------------------------
     multi_params = os.path.join(pkg_dir, "config", "nav2_params_multi.yaml")
+    nav2_base_delay = 5.0  # let Stage/RViz settle
+    nav2_stagger = 5.0  # seconds between each robot's Nav2
 
-    for robot in robots:
+    for i, robot in enumerate(robots):
         ns = robot["name"]
 
         nav2_min_launch = IncludeLaunchDescription(
@@ -321,8 +319,6 @@ def launch_setup(context):
             }.items(),
         )
 
-        # Wrap both Nav2 sub-stacks in a namespace group so every spawned
-        # node is placed in /robot_N/... automatically.
         nav2_group = GroupAction(
             [
                 PushRosNamespace(ns),
@@ -330,11 +326,14 @@ def launch_setup(context):
             ]
         )
 
-        # Publish initial pose to /<ns>/initialpose after Nav2 has started.
-        # AMCL (relative subscriber) sees this as its own /initialpose once
-        # the namespace is pushed.
+        nav2_delayed = TimerAction(
+            period=nav2_base_delay + i * nav2_stagger,
+            actions=[nav2_group],
+        )
+
+        # Phase 3: Initial poses (after each robot's Nav2 is up)
         initial_pose_pub = TimerAction(
-            period=5.0,
+            period=nav2_base_delay + i * nav2_stagger + 2.0,
             actions=[
                 ExecuteProcess(
                     cmd=[
@@ -353,7 +352,24 @@ def launch_setup(context):
             ],
         )
 
-        actions += [nav2_group, initial_pose_pub]
+        actions += [nav2_delayed, initial_pose_pub]
+
+    # ------------------------------------------------------------------
+    # Phase 4: Application nodes (after all Nav2 stacks + initial poses)
+    # Last initial pose fires at: nav2_base_delay + (N-1)*stagger + 10
+    # Add 5 s buffer for AMCL to publish the map→odom transform.
+    # ------------------------------------------------------------------
+    app_delay = nav2_base_delay + (len(robots) - 1) * nav2_stagger + 10.0
+    app_nodes = [
+        target_graph_uniform,
+        milp_graph_search,
+        # exhaustive_graph_search,
+        search_metrics_logger,
+        graph_viz,
+        graph_markers,
+        robot_markers,
+    ]
+    actions.append(TimerAction(period=app_delay, actions=app_nodes))
 
     return actions
 
