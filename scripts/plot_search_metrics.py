@@ -286,6 +286,92 @@ def make_grouped_boxplots(
     return out_path
 
 
+def make_aggregate_boxplots(
+    rows: list[dict], out_dir: Path
+) -> Path:
+    """Two-subplot figure (explored_pct, elapsed_sec) with one box per method,
+    data aggregated across all worlds.  Both methods are trimmed to the same N."""
+    by_method: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        by_method[row["method"]].append(row)
+
+    methods = [m for m in ("baseline", "mespp") if m in by_method]
+
+    # Equalise sample sizes: keep the fastest N runs per method (N = min count).
+    min_n = min(len(by_method[m]) for m in methods)
+    for m in methods:
+        by_method[m] = sorted(by_method[m], key=lambda r: r["elapsed_sec"])[:min_n]
+
+    fig, axes = plt.subplots(1, 2, figsize=(10.0, 5.3))
+
+    def draw(ax: plt.Axes, metric_key: str, ylabel: str, title: str) -> None:
+        data = [
+            [r[metric_key] for r in by_method[m]]
+            for m in methods
+        ]
+        colors = [METHOD_COLORS.get(m, "#8d99ae") for m in methods]
+
+        artists = ax.boxplot(
+            data,
+            positions=list(range(1, len(methods) + 1)),
+            widths=0.55,
+            patch_artist=True,
+            showmeans=True,
+            meanprops={
+                "marker": "D",
+                "markerfacecolor": "white",
+                "markeredgecolor": "#111111",
+                "markersize": 6,
+                "linewidth": 1.1,
+            },
+            medianprops={"color": "#222222", "linewidth": 1.5},
+        )
+        for patch, color in zip(artists["boxes"], colors):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.82)
+
+        ax.set_title(title)
+        ax.set_ylabel(ylabel)
+        ax.set_xticks(range(1, len(methods) + 1))
+        ax.set_xticklabels([m.upper() for m in methods])
+        ax.grid(axis="y", alpha=0.25)
+
+    draw(axes[0], "explored_pct", "Percent of graph nodes", "Total nodes explored (%)")
+    draw(axes[1], "elapsed_sec", "Seconds", "Capture time")
+
+    legend_handles = [
+        Patch(
+            facecolor=METHOD_COLORS.get(m, "#8d99ae"),
+            edgecolor="black",
+            label=m.upper(),
+        )
+        for m in methods
+    ]
+    legend_handles.append(
+        Line2D(
+            [0], [0],
+            marker="D",
+            color="none",
+            markerfacecolor="white",
+            markeredgecolor="#111111",
+            markersize=6,
+            label="Mean",
+        )
+    )
+    axes[1].legend(handles=legend_handles, loc="upper right", frameon=False)
+
+    fig.suptitle(
+        f"MESPP vs. Baseline — all worlds aggregated (n={min_n} per method)",
+        fontsize=12,
+    )
+    fig.tight_layout()
+
+    out_path = out_dir / "aggregate_boxplots.png"
+    fig.savefig(out_path, dpi=170)
+    plt.close(fig)
+    return out_path
+
+
 def make_all_maps_scatter(
     rows: list[dict], node_counts_by_graph: dict[str, int], out_dir: Path
 ) -> Path:
@@ -339,6 +425,7 @@ def main() -> None:
     rows, node_counts_by_graph = load_records(csv_paths, args.gml_dir)
     rows = select_fastest_rows(rows, args.top_k)
     grouped_boxplot_path = make_grouped_boxplots(rows, node_counts_by_graph, out_dir)
+    aggregate_path = make_aggregate_boxplots(rows, out_dir)
     all_maps_path = make_all_maps_scatter(rows, node_counts_by_graph, out_dir)
 
     counts: dict[tuple[str, str], int] = defaultdict(int)
@@ -355,6 +442,7 @@ def main() -> None:
 
     print("\nGenerated plots:")
     print(f"  {grouped_boxplot_path}")
+    print(f"  {aggregate_path}")
     print(f"  {all_maps_path}")
 
 
