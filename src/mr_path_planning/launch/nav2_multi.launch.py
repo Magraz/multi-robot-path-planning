@@ -131,6 +131,7 @@ def make_initial_pose_yaml(ns: str, x: float, y: float, yaw_deg: float) -> str:
 
 def launch_setup(context):
     world = LaunchConfiguration("world").perform(context)
+    algorithm = LaunchConfiguration("algorithm").perform(context)
     enable_graph_viz = LaunchConfiguration("enable_graph_viz")
     enable_graph_markers = LaunchConfiguration("enable_graph_markers")
     graph_viz_rotation_deg = LaunchConfiguration("graph_viz_rotation_deg")
@@ -360,10 +361,10 @@ def launch_setup(context):
     # Add 5 s buffer for AMCL to publish the map→odom transform.
     # ------------------------------------------------------------------
     app_delay = nav2_base_delay + (len(robots) - 1) * nav2_stagger + 10.0
+    search_node = milp_graph_search if algorithm == "mespp" else exhaustive_graph_search
     app_nodes = [
         target_graph_uniform,
-        milp_graph_search,
-        # exhaustive_graph_search,
+        search_node,
         search_metrics_logger,
         graph_viz,
         graph_markers,
@@ -381,6 +382,11 @@ def generate_launch_description():
                 "world",
                 default_value="polkadot",
                 description="World name (polkadot, graf201, hospital, world_1, world_2, world_3)",
+            ),
+            DeclareLaunchArgument(
+                "algorithm",
+                default_value="baseline",
+                description="Search algorithm: 'baseline' (exhaustive) or 'mespp' (MILP)",
             ),
             DeclareLaunchArgument(
                 "enable_graph_viz",

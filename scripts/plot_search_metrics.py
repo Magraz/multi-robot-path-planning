@@ -22,6 +22,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
 
@@ -218,6 +219,14 @@ def make_grouped_boxplots(
             positions=positions,
             widths=0.72,
             patch_artist=True,
+            showmeans=True,
+            meanprops={
+                "marker": "D",
+                "markerfacecolor": "white",
+                "markeredgecolor": "#111111",
+                "markersize": 6,
+                "linewidth": 1.1,
+            },
             medianprops={"color": "#222222", "linewidth": 1.5},
         )
         for patch, color in zip(artists["boxes"], colors):
@@ -240,7 +249,7 @@ def make_grouped_boxplots(
         axes[1],
         metric_key="elapsed_sec",
         ylabel="Seconds",
-        title="Elapsed time",
+        title="Capture time",
     )
 
     legend_handles = [
@@ -251,10 +260,22 @@ def make_grouped_boxplots(
         )
         for m in methods
     ]
+    legend_handles.append(
+        Line2D(
+            [0],
+            [0],
+            marker="D",
+            color="none",
+            markerfacecolor="white",
+            markeredgecolor="#111111",
+            markersize=6,
+            label="Mean",
+        )
+    )
     axes[1].legend(handles=legend_handles, loc="upper right", frameon=False)
 
     fig.suptitle(
-        "MESPP vs. Baseline grouped by percentage of nodes explored, and elapsed time.",
+        "MESPP vs. Baseline grouped by percentage of nodes explored, and capture time.",
         fontsize=12,
     )
     fig.tight_layout()
