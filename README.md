@@ -4,6 +4,43 @@ Two searcher robots (`robot_0`, `robot_1`) use a MILP planner to capture a mobil
 
 ---
 
+## Install and Setup Zenoh
+
+This project requires Zenoh to be running as the DDS for ROS 2 since other DDS where causing issues when handling multiple instances of Nav2. First install Zenoh:
+
+```bash
+sudo apt install ros-<ROS_DISTRO>-rmw-zenoh-cpp
+```
+
+Write this into the .bashrc:
+```bash
+export RMW_IMPLEMENTATION=rmw_zenoh_cpp
+```
+
+Then in a new terminal run the following and don't close it while running this project: 
+```bash
+source /opt/ros/<ROS_DISTRO>/setup.bash
+ros2 run rmw_zenoh_cpp rmw_zenohd
+```
+
+## Workspace setup
+
+```bash
+source /opt/ros/<ROS_DISTRO>/setup.bash
+cd multi-robot-path-planning
+colcon build --symlink-install
+source install/setup.bash
+```
+
+## Run the multi robot search algorithm
+
+Available worlds: `world_1`, `world_2`, `world_3`
+Available algorithsm: `mespp`, `baseline`
+
+```bash
+ros2 launch mr_path_planning nav2_multi.launch.py world:=world_1 algorithm:=mespp
+```
+
 ## How it works
 
 ### Graph and map
@@ -50,26 +87,11 @@ column -t -s',' ~/.ros/search_metrics.csv
 
 ---
 
-## Setup
-
-```bash
-cd mrpp_ros2_ws
-source /opt/ros/jazzy/setup.bash
-colcon build --symlink-install
-source install/setup.bash
-```
-
-## Run
-
-Available worlds: `polkadot`, `graf201`, `hospital`, `world_1`, `world_2`, `world_3`
-
-```bash
-ros2 launch mr_path_planning nav2_multi.launch.py world:=world_1
-```
+## Graph overlay
 
 The graph overlay in RViz is on by default. To disable it:
 ```bash
-ros2 launch mr_path_planning nav2_multi.launch.py world:=world_1 enable_graph_markers:=false
+ros2 launch mr_path_planning nav2_multi.launch.py world:=world_1 algorithm:=mespp enable_graph_markers:=false
 ```
 
 ### Kill all processes
