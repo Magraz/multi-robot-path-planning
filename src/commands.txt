@@ -1,25 +1,25 @@
 uv run python3 scripts/generate_graph.py \
-    --map-path /home/magraz/multi-robot-path-planning/src/mr_path_planning/world/bitmaps/my_office.png \
+    --map-path /home/magraz/multi-robot-path-planning/src/mr_path_planning/world/bitmaps/world_1.png \
     --resolution 0.05 \
     --safety-distance 0.5 \
     --output-dir /home/magraz/multi-robot-path-planning/src/mr_path_planning/world/bitmaps
 
-uv run python scripts/map_generator.py --width 800 --height 500 --resolution 0.05 --seed 201 --name big_office --output-dir src/mr_path_planning/world/bitmaps
+uv run python scripts/map_generator.py --width 800 --height 500 --resolution 0.05 --seed 201 --name world_2 --output-dir src/mr_path_planning/world/bitmaps
 
 
   # Draw a new graph from scratch
 python scripts/draw_graph_on_map.py \
-  --map-image src/mr_path_planning/world/bitmaps/my_office.png \
+  --map-image src/mr_path_planning/world/bitmaps/world_1.png \
   --output my_office_manual.gml
 
 # Continue editing an existing GML
 python scripts/draw_graph_on_map.py \
-  --map-image src/mr_path_planning/world/bitmaps/my_office.png \
-  --load src/mr_path_planning/world/bitmaps/my_office.gml \
+  --map-image src/mr_path_planning/world/bitmaps/world_1.png \
+  --load src/mr_path_planning/world/bitmaps/world_1.gml \
   --output my_office_manual.gml
 
 # With world coordinate conversion (if you have a map YAML)
 python scripts/draw_graph_on_map.py \
-  --map-image src/mr_path_planning/world/bitmaps/my_office.png \
-  --map-yaml src/mr_path_planning/world/bitmaps/my_office.yaml \
+  --map-image src/mr_path_planning/world/bitmaps/world_1.png \
+  --map-yaml src/mr_path_planning/world/bitmaps/world_1.yaml \
   --output my_office_manual.gml

@@ -1,0 +1,11 @@
+timestamp,outcome,elapsed_sec,unique_nodes_all,graph,nodes_robot_0,nodes_robot_1
+2026-03-10T19:04:04,STOPPED (non-capture or blocked),47.201,9,world_1.gml,4,5
+2026-03-10T19:10:51,STOPPED (non-capture or blocked),218.302,11,world_1.gml,9,2
+2026-03-10T19:20:30,STOPPED (non-capture or blocked),105.544,11,world_1.gml,9,2
+2026-03-10T19:26:27,STOPPED (non-capture or blocked),100.583,16,world_1.gml,9,7
+2026-03-10T19:30:24,STOPPED (non-capture or blocked),56.223,11,world_1.gml,7,4
+2026-03-10T19:35:09,STOPPED (non-capture or blocked),51.424,12,world_1.gml,7,5
+2026-03-10T19:36:45,STOPPED (non-capture or blocked),73.868,16,world_1.gml,8,9
+2026-03-10T19:38:37,STOPPED (non-capture or blocked),77.642,15,world_1.gml,8,7
+2026-03-10T19:40:19,STOPPED (non-capture or blocked),53.817,13,world_1.gml,8,5
+2026-03-10T19:44:34,STOPPED (non-capture or blocked),52.176,13,world_1.gml,7,6

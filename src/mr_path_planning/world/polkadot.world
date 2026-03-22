@@ -75,7 +75,7 @@ turtlebot_with_laser
 (
   # can refer to the robot by this name
   name "robot_0"
-  color "red" 
+  color "blue"
   pose [ -4.00 -4.00 0 45 ] 
 )
 
@@ -83,7 +83,7 @@ turtlebot_with_laser
 (
   # can refer to the robot by this name
   name "robot_1"
-  color "purple" 
+  color "blue"
   pose [ 4.00 -4.00 0 45 ] 
 )
 
@@ -91,6 +91,6 @@ turtlebot_with_laser
 (
   # can refer to the robot by this name
   name "target_0"
-  color "blue" 
-  pose [ 0.00 0.00 0 45 ] 
+  color "red"
+  pose [ 0.00 0.00 0 45 ]
 )

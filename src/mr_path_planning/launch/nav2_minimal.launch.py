@@ -59,7 +59,12 @@ def generate_launch_description():
                         name="lifecycle_manager_localization",
                         output="screen",
                         parameters=[
-                            {"autostart": autostart, "node_names": localization_nodes}
+                            {
+                                "autostart": autostart,
+                                "node_names": localization_nodes,
+                                "attempt_respawn_reconnection": True,
+                                "bond_respawn_max_duration": 30.0,
+                            }
                         ],
                     ),
                     # -------- Navigation --------
@@ -112,7 +117,12 @@ def generate_launch_description():
                         name="lifecycle_manager_navigation",
                         output="screen",
                         parameters=[
-                            {"autostart": autostart, "node_names": navigation_nodes}
+                            {
+                                "autostart": autostart,
+                                "node_names": navigation_nodes,
+                                "attempt_respawn_reconnection": True,
+                                "bond_respawn_max_duration": 30.0,
+                            }
                         ],
                     ),
                 ]

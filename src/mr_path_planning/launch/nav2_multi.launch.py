@@ -41,6 +41,7 @@ from launch.actions import (
     OpaqueFunction,
     TimerAction,
 )
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
@@ -59,9 +60,9 @@ WORLD_CONFIGS = {
     },
     "graf201": {
         "robots": [
-            {"name": "robot_0", "x": -6.00, "y": -4.00, "yaw_deg": 45.0},
-            {"name": "robot_1", "x": 6.00, "y": -4.00, "yaw_deg": 45.0},
-            {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
+            {"name": "robot_0", "x": -8.00, "y": -6.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": 8.00, "y": -6.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 0.00, "y": 8.00, "yaw_deg": 45.0},
         ],
     },
     "hospital": {
@@ -82,21 +83,21 @@ WORLD_CONFIGS = {
             {"name": "target_0", "x": 0.00, "y": 0.00, "yaw_deg": 45.0},
         ],
     },
-    "my_office": {
+    "world_1": {
         "robots": [
-            {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
-            {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
-            {"name": "target_0", "x": 7.60, "y": 0.00, "yaw_deg": 45.0},
+            {"name": "robot_0", "x": -18.00, "y": -5.00, "yaw_deg": 45.0},
+            {"name": "robot_1", "x": -4.00, "y": -5.00, "yaw_deg": 45.0},
+            {"name": "target_0", "x": 0.00, "y": 8.00, "yaw_deg": 45.0},
         ],
     },
-    "big_office": {
+    "world_2": {
         "robots": [
             {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
             {"name": "target_0", "x": 15.00, "y": -10.00, "yaw_deg": 45.0},
         ],
     },
-    "more_office": {
+    "world_3": {
         "robots": [
             {"name": "robot_0", "x": -19.00, "y": 2.00, "yaw_deg": 45.0},
             {"name": "robot_1", "x": -5.70, "y": 2.00, "yaw_deg": 45.0},
@@ -130,11 +131,18 @@ def make_initial_pose_yaml(ns: str, x: float, y: float, yaw_deg: float) -> str:
 
 def launch_setup(context):
     world = LaunchConfiguration("world").perform(context)
+    algorithm = LaunchConfiguration("algorithm").perform(context)
+    enable_graph_viz = LaunchConfiguration("enable_graph_viz")
+    enable_graph_markers = LaunchConfiguration("enable_graph_markers")
+    graph_viz_rotation_deg = LaunchConfiguration("graph_viz_rotation_deg")
     config = WORLD_CONFIGS[world]
     robots = config["robots"]
 
     pkg_dir = get_package_share_directory(NODENAME)
     map_yaml = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.yaml")
+    graph_sparse = os.path.join(pkg_dir, "world", "bitmaps", f"{world}_sparse.gml")
+    graph_dense = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.gml")
+    graph_path = graph_sparse if os.path.exists(graph_sparse) else graph_dense
 
     # ------------------------------------------------------------------
     # Stage simulator
@@ -163,50 +171,142 @@ def launch_setup(context):
         }.items(),
     )
 
-    # Relay /goal_pose from RViz to each robot's namespaced goal_pose topic
-    goal_relay = Node(
+    target_graph_uniform = Node(
         package=NODENAME,
-        executable="goal_relay",
-        name="goal_relay",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-    )
-
-    # Periodically send target_0's position as a goal to robot_0 and robot_1
-    chase_target = Node(
-        package=NODENAME,
-        executable="chase_target",
-        name="chase_target",
+        executable="target_graph_uniform",
+        name="target_graph_uniform",
         output="screen",
         parameters=[
             {"use_sim_time": True},
             {"target_name": "target_0"},
-            {"period": 5.0},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"period": 2.0},
+            {"move_every_n_cycles": 1},
+            {"seed": 0},
         ],
     )
 
-    # actions = [stage_and_rviz, goal_relay, target_patrol, chase_target]
+    # High-level graph routing with MILP; Nav2 executes waypoint motion.
+    # pkg_dir is <ws>/install/<pkg>/share/<pkg>; walk up to workspace root.
+    ws_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(pkg_dir)))
+    )
+    mespp_code_path = os.path.join(ws_root, "src", "search_and_capture_algo", "code")
 
-    # Visualize the world's GML graph in RViz (if the .gml file exists)
-    graph_file = os.path.join(pkg_dir, "world", "bitmaps", f"{world}.gml")
-    graph_visualizer = Node(
+    milp_graph_search = Node(
+        package=NODENAME,
+        executable="milp_graph_search",
+        name="milp_graph_search",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"enabled": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"horizon": 10},
+            {"replan_period": 4.0},
+            {"capture_distance": 1.0},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"mespp_code_path": mespp_code_path},
+            {"solver_time_limit": 5.0},
+        ],
+    )
+
+    exhaustive_graph_search = Node(
+        package=NODENAME,
+        executable="exhaustive_graph_search",
+        name="exhaustive_graph_search",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"enabled": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"replan_period": 4.0},
+            {"capture_distance": 1.0},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"node_reach_distance": 1.0},
+        ],
+    )
+
+    graph_viz = Node(
+        package=NODENAME,
+        executable="realtime_graph_visualizer",
+        name="realtime_graph_visualizer",
+        output="screen",
+        condition=IfCondition(enable_graph_viz),
+        parameters=[
+            {"use_sim_time": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"period": 0.5},
+            {"rotate_graph_deg": graph_viz_rotation_deg},
+            {"pixel_order": "rc"},
+        ],
+    )
+
+    graph_markers = Node(
         package=NODENAME,
         executable="graph_visualizer",
         name="graph_visualizer",
         output="screen",
+        condition=IfCondition(enable_graph_markers),
         parameters=[
             {"use_sim_time": True},
-            {"graph_file": graph_file},
+            {"graph_path": graph_path},
             {"map_yaml": map_yaml},
             {"frame_id": "robot_0/map"},
         ],
     )
 
-    actions = [stage, rviz, goal_relay, chase_target, graph_visualizer]
+    robot_markers = Node(
+        package=NODENAME,
+        executable="robot_markers",
+        name="robot_markers",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+            {"frame_id": "robot_0/map"},
+        ],
+    )
 
+    csv_path = os.path.join(ws_root, "results", f"search_metrics_{world}.csv")
+
+    search_metrics_logger = Node(
+        package=NODENAME,
+        executable="search_metrics_logger",
+        name="search_metrics_logger",
+        output="screen",
+        parameters=[
+            {"use_sim_time": True},
+            {"graph_path": graph_path},
+            {"map_yaml": map_yaml},
+            {"metrics_csv": csv_path},
+            {"searcher_names": ["robot_0", "robot_1"]},
+            {"target_name": "target_0"},
+        ],
+    )
+
+    # ------------------------------------------------------------------
+    # Phase 1: Stage simulator + RViz (immediate)
+    # ------------------------------------------------------------------
+    actions = [stage, rviz]
+
+    # ------------------------------------------------------------------
+    # Phase 2: Nav2 stacks (staggered by 5 s per robot)
+    # ------------------------------------------------------------------
     multi_params = os.path.join(pkg_dir, "config", "nav2_params_multi.yaml")
+    nav2_base_delay = 5.0  # let Stage/RViz settle
+    nav2_stagger = 5.0  # seconds between each robot's Nav2
 
-    for robot in robots:
+    for i, robot in enumerate(robots):
         ns = robot["name"]
 
         nav2_min_launch = IncludeLaunchDescription(
@@ -220,8 +320,6 @@ def launch_setup(context):
             }.items(),
         )
 
-        # Wrap both Nav2 sub-stacks in a namespace group so every spawned
-        # node is placed in /robot_N/... automatically.
         nav2_group = GroupAction(
             [
                 PushRosNamespace(ns),
@@ -229,11 +327,14 @@ def launch_setup(context):
             ]
         )
 
-        # Publish initial pose to /<ns>/initialpose after Nav2 has started.
-        # AMCL (relative subscriber) sees this as its own /initialpose once
-        # the namespace is pushed.
+        nav2_delayed = TimerAction(
+            period=nav2_base_delay + i * nav2_stagger,
+            actions=[nav2_group],
+        )
+
+        # Phase 3: Initial poses (after each robot's Nav2 is up)
         initial_pose_pub = TimerAction(
-            period=5.0,
+            period=nav2_base_delay + i * nav2_stagger + 2.0,
             actions=[
                 ExecuteProcess(
                     cmd=[
@@ -252,7 +353,24 @@ def launch_setup(context):
             ],
         )
 
-        actions += [nav2_group, initial_pose_pub]
+        actions += [nav2_delayed, initial_pose_pub]
+
+    # ------------------------------------------------------------------
+    # Phase 4: Application nodes (after all Nav2 stacks + initial poses)
+    # Last initial pose fires at: nav2_base_delay + (N-1)*stagger + 10
+    # Add 5 s buffer for AMCL to publish the map→odom transform.
+    # ------------------------------------------------------------------
+    app_delay = nav2_base_delay + (len(robots) - 1) * nav2_stagger + 10.0
+    search_node = milp_graph_search if algorithm == "mespp" else exhaustive_graph_search
+    app_nodes = [
+        target_graph_uniform,
+        search_node,
+        search_metrics_logger,
+        graph_viz,
+        graph_markers,
+        robot_markers,
+    ]
+    actions.append(TimerAction(period=app_delay, actions=app_nodes))
 
     return actions
 
@@ -263,7 +381,27 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "world",
                 default_value="polkadot",
-                description="World name (polkadot or graf201)",
+                description="World name (polkadot, graf201, hospital, world_1, world_2, world_3)",
+            ),
+            DeclareLaunchArgument(
+                "algorithm",
+                default_value="baseline",
+                description="Search algorithm: 'baseline' (exhaustive) or 'mespp' (MILP)",
+            ),
+            DeclareLaunchArgument(
+                "enable_graph_viz",
+                default_value="false",
+                description="Enable realtime map+graph+belief visualization window",
+            ),
+            DeclareLaunchArgument(
+                "enable_graph_markers",
+                default_value="true",
+                description="Publish graph MarkerArray for RViz",
+            ),
+            DeclareLaunchArgument(
+                "graph_viz_rotation_deg",
+                default_value="0.0",
+                description="Rotation (degrees) applied only to graph visualization",
             ),
             OpaqueFunction(function=launch_setup),
         ]

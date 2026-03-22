@@ -12,10 +12,12 @@
   <depend>visualization_msgs</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>nav2_bringup</depend>
   <depend>nav_msgs</depend>
   <depend>nav2_msgs</depend>
   <depend>slam_toolbox</depend>
+  <depend>stage_ros2</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

@@ -52,8 +52,9 @@ robot_0:
       global_frame: "robot_0/map"
       robot_base_frame: "robot_0/base_link"
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       bt_loop_duration: 10
-      default_server_timeout: 5000
+      default_server_timeout: 20000
       navigators: ["navigate_to_pose", "navigate_through_poses"]
       navigate_to_pose:
         plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
@@ -69,6 +70,7 @@ robot_0:
       min_theta_velocity_threshold: 0.001
       failure_tolerance: 0.3
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       progress_checker_plugins: ["progress_checker"]
       goal_checker_plugins: ["general_goal_checker"]
       controller_plugins: ["FollowPath"]
@@ -79,8 +81,8 @@ robot_0:
       general_goal_checker:
         stateful: True
         plugin: "nav2_controller::SimpleGoalChecker"
-        xy_goal_tolerance: 0.25
-        yaw_goal_tolerance: 0.25
+        xy_goal_tolerance: 0.5
+        yaw_goal_tolerance: 0.5
       FollowPath:
         plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
         desired_linear_vel: 0.8
@@ -117,7 +119,7 @@ robot_0:
         width: 6
         height: 6
         resolution: 0.05
-        robot_radius: 0.18
+        robot_radius: 0.22
         plugins: ["obstacle_layer", "inflation_layer"]
         obstacle_layer:
           plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -136,7 +138,7 @@ robot_0:
         inflation_layer:
           plugin: "nav2_costmap_2d::InflationLayer"
           cost_scaling_factor: 2.0
-          inflation_radius: 0.55
+          inflation_radius: 0.30
         always_send_full_costmap: True
 
   global_costmap:
@@ -147,7 +149,7 @@ robot_0:
         publish_frequency: 1.0
         global_frame: "robot_0/map"
         robot_base_frame: "robot_0/base_link"
-        robot_radius: 0.18
+        robot_radius: 0.22
         resolution: 0.05
         track_unknown_space: true
         plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -171,7 +173,7 @@ robot_0:
         inflation_layer:
           plugin: "nav2_costmap_2d::InflationLayer"
           cost_scaling_factor: 2.0
-          inflation_radius: 0.55
+          inflation_radius: 0.30
         always_send_full_costmap: True
 
   map_server:
@@ -202,6 +204,7 @@ robot_0:
 
   behavior_server:
     ros__parameters:
+      enable_stamped_cmd_vel: true
       use_sim_time: True
       local_costmap_topic: local_costmap/costmap_raw
       global_costmap_topic: global_costmap/costmap_raw
@@ -248,12 +251,14 @@ robot_0:
       max_accel: [0.5, 0.0, 2.0]
       max_decel: [-0.5, 0.0, -2.0]
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       odom_duration: 0.1
       deadband_velocity: [0.0, 0.0, 0.0]
       velocity_timeout: 1.0
 
   collision_monitor:
     ros__parameters:
+      enable_stamped_cmd_vel: true
       use_sim_time: True
       base_frame_id: "robot_0/base_link"
       odom_frame_id: "robot_0/odom"
@@ -337,8 +342,9 @@ robot_1:
       global_frame: "robot_1/map"
       robot_base_frame: "robot_1/base_link"
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       bt_loop_duration: 10
-      default_server_timeout: 5000
+      default_server_timeout: 20000
       navigators: ["navigate_to_pose", "navigate_through_poses"]
       navigate_to_pose:
         plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
@@ -354,6 +360,7 @@ robot_1:
       min_theta_velocity_threshold: 0.001
       failure_tolerance: 0.3
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       progress_checker_plugins: ["progress_checker"]
       goal_checker_plugins: ["general_goal_checker"]
       controller_plugins: ["FollowPath"]
@@ -364,8 +371,8 @@ robot_1:
       general_goal_checker:
         stateful: True
         plugin: "nav2_controller::SimpleGoalChecker"
-        xy_goal_tolerance: 0.25
-        yaw_goal_tolerance: 0.25
+        xy_goal_tolerance: 0.5
+        yaw_goal_tolerance: 0.5
       FollowPath:
         plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
         desired_linear_vel: 0.8
@@ -402,7 +409,7 @@ robot_1:
         width: 6
         height: 6
         resolution: 0.05
-        robot_radius: 0.18
+        robot_radius: 0.22
         plugins: ["obstacle_layer", "inflation_layer"]
         obstacle_layer:
           plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -421,7 +428,7 @@ robot_1:
         inflation_layer:
           plugin: "nav2_costmap_2d::InflationLayer"
           cost_scaling_factor: 2.0
-          inflation_radius: 0.55
+          inflation_radius: 0.30
         always_send_full_costmap: True
 
   global_costmap:
@@ -432,7 +439,7 @@ robot_1:
         publish_frequency: 1.0
         global_frame: "robot_1/map"
         robot_base_frame: "robot_1/base_link"
-        robot_radius: 0.18
+        robot_radius: 0.22
         resolution: 0.05
         track_unknown_space: true
         plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -456,7 +463,7 @@ robot_1:
         inflation_layer:
           plugin: "nav2_costmap_2d::InflationLayer"
           cost_scaling_factor: 2.0
-          inflation_radius: 0.55
+          inflation_radius: 0.30
         always_send_full_costmap: True
 
   map_server:
@@ -487,6 +494,7 @@ robot_1:
 
   behavior_server:
     ros__parameters:
+      enable_stamped_cmd_vel: true
       use_sim_time: True
       local_costmap_topic: local_costmap/costmap_raw
       global_costmap_topic: global_costmap/costmap_raw
@@ -533,12 +541,14 @@ robot_1:
       max_accel: [0.5, 0.0, 2.0]
       max_decel: [-0.5, 0.0, -2.0]
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       odom_duration: 0.1
       deadband_velocity: [0.0, 0.0, 0.0]
       velocity_timeout: 1.0
 
   collision_monitor:
     ros__parameters:
+      enable_stamped_cmd_vel: true
       use_sim_time: True
       base_frame_id: "robot_1/base_link"
       odom_frame_id: "robot_1/odom"
@@ -622,8 +632,9 @@ target_0:
       global_frame: "target_0/map"
       robot_base_frame: "target_0/base_link"
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       bt_loop_duration: 10
-      default_server_timeout: 5000
+      default_server_timeout: 20000
       navigators: ["navigate_to_pose", "navigate_through_poses"]
       navigate_to_pose:
         plugin: "nav2_bt_navigator::NavigateToPoseNavigator"
@@ -639,6 +650,7 @@ target_0:
       min_theta_velocity_threshold: 0.001
       failure_tolerance: 0.3
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       progress_checker_plugins: ["progress_checker"]
       goal_checker_plugins: ["general_goal_checker"]
       controller_plugins: ["FollowPath"]
@@ -649,8 +661,8 @@ target_0:
       general_goal_checker:
         stateful: True
         plugin: "nav2_controller::SimpleGoalChecker"
-        xy_goal_tolerance: 0.25
-        yaw_goal_tolerance: 0.25
+        xy_goal_tolerance: 0.5
+        yaw_goal_tolerance: 0.5
       FollowPath:
         plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
         desired_linear_vel: 0.8
@@ -687,7 +699,7 @@ target_0:
         width: 6
         height: 6
         resolution: 0.05
-        robot_radius: 0.18
+        robot_radius: 0.22
         plugins: ["obstacle_layer", "inflation_layer"]
         obstacle_layer:
           plugin: "nav2_costmap_2d::ObstacleLayer"
@@ -706,7 +718,7 @@ target_0:
         inflation_layer:
           plugin: "nav2_costmap_2d::InflationLayer"
           cost_scaling_factor: 2.0
-          inflation_radius: 0.55
+          inflation_radius: 0.30
         always_send_full_costmap: True
 
   global_costmap:
@@ -717,7 +729,7 @@ target_0:
         publish_frequency: 1.0
         global_frame: "target_0/map"
         robot_base_frame: "target_0/base_link"
-        robot_radius: 0.18
+        robot_radius: 0.22
         resolution: 0.05
         track_unknown_space: true
         plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -741,7 +753,7 @@ target_0:
         inflation_layer:
           plugin: "nav2_costmap_2d::InflationLayer"
           cost_scaling_factor: 2.0
-          inflation_radius: 0.55
+          inflation_radius: 0.30
         always_send_full_costmap: True
 
   map_server:
@@ -772,6 +784,7 @@ target_0:
 
   behavior_server:
     ros__parameters:
+      enable_stamped_cmd_vel: true
       use_sim_time: True
       local_costmap_topic: local_costmap/costmap_raw
       global_costmap_topic: global_costmap/costmap_raw
@@ -818,12 +831,14 @@ target_0:
       max_accel: [0.5, 0.0, 2.0]
       max_decel: [-0.5, 0.0, -2.0]
       odom_topic: ground_truth
+      enable_stamped_cmd_vel: true
       odom_duration: 0.1
       deadband_velocity: [0.0, 0.0, 0.0]
       velocity_timeout: 1.0
 
   collision_monitor:
     ros__parameters:
+      enable_stamped_cmd_vel: true
       use_sim_time: True
       base_frame_id: "target_0/base_link"
       odom_frame_id: "target_0/odom"
